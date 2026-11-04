@@ -1,0 +1,1328 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#14324f">
+<title>Escala 5x2 · Rede de Postos (protótipo)</title>
+<link rel="icon" href="data:,">
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #f3f5f8;
+    --surface: #ffffff;
+    --ink: #1b2733;
+    --muted: #5d6b7a;
+    --line: #dfe4ea;
+    --brand: #14324f;
+    --accent: #1766a8;
+    --accent-soft: #e6f0f9;
+    --work: #d9e8f6;
+    --work-ink: #1d4568;
+    --off: #fbd46d;
+    --off-ink: #5f4100;
+    --danger: #c81e1e;
+    --danger-soft: #fdecec;
+    --ok: #17703f;
+    --ok-soft: #e7f5ed;
+    --warn: #8a5a00;
+    --warn-soft: #fff6e0;
+    --radius: 10px;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  h1, h2, h3, p { margin: 0; }
+  button, input, select { font: inherit; color: inherit; }
+  [hidden] { display: none !important; }
+
+  /* Cabeçalho e abas */
+  .topo { background: var(--brand); color: #fff; }
+  .topo-in { max-width: 1320px; margin: 0 auto; padding: 16px 16px 0; }
+  .topo h1 { font-size: 20px; font-weight: 650; letter-spacing: -.01em; }
+  .topo p { color: #bcd0e3; font-size: 13px; margin-top: 2px; }
+  .abas { display: flex; gap: 2px; margin-top: 12px; overflow-x: auto; scrollbar-width: none; }
+  .abas button {
+    flex: none; background: none; border: 0; color: #cfdeec; cursor: pointer;
+    padding: 10px 14px; border-radius: 8px 8px 0 0; font-weight: 550; min-height: 42px;
+  }
+  .abas button:hover { color: #fff; background: rgba(255,255,255,.08); }
+  .abas button[aria-selected="true"] { background: var(--bg); color: var(--brand); }
+  main { max-width: 1320px; margin: 0 auto; padding: 16px; }
+  .aba { display: none; }
+  .aba.ativa { display: block; }
+
+  /* Componentes */
+  .cartao {
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 16px; margin-bottom: 16px;
+  }
+  .cartao > h2 { font-size: 15px; font-weight: 650; margin-bottom: 10px; }
+  .sutil { color: var(--muted); font-size: 13px; }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    background: var(--surface); border: 1px solid #c6ced7; border-radius: 8px;
+    padding: 8px 12px; min-height: 40px; cursor: pointer; font-weight: 550; white-space: nowrap;
+  }
+  .btn:hover { background: #f4f6f9; }
+  .btn.prim { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn.prim:hover { background: #125488; }
+  .btn.perigo { color: var(--danger); border-color: #e6b5b5; }
+  .btn.perigo:hover { background: var(--danger-soft); }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+  .btn.peq { min-height: 32px; padding: 4px 10px; font-size: 13px; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  label.campo { display: flex; flex-direction: column; gap: 4px; font-size: 13px; font-weight: 550; color: var(--muted); }
+  input[type=text], input[type=number], select {
+    background: #fff; border: 1px solid #c6ced7; border-radius: 8px; padding: 8px 10px;
+    min-height: 40px; width: 100%; font-size: 15px; font-weight: 400; color: var(--ink);
+  }
+  .tag {
+    display: inline-block; font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 99px;
+    background: var(--warn-soft); color: var(--warn); border: 1px solid #efd9a3; vertical-align: 1px;
+  }
+
+  .aviso-exemplo {
+    display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; justify-content: space-between;
+    background: var(--warn-soft); border: 1px solid #efd9a3; color: #6a4600; border-radius: var(--radius);
+    padding: 8px 12px; margin-bottom: 16px; font-size: 13.5px;
+  }
+  .aviso-info {
+    background: var(--accent-soft); border: 1px solid #c3dbf0; color: #17466f; border-radius: var(--radius);
+    padding: 8px 12px; margin-bottom: 16px; font-size: 13.5px;
+  }
+
+  /* Barra de ferramentas */
+  .ferramentas { display: flex; flex-wrap: wrap; gap: 10px 12px; align-items: flex-end; margin-bottom: 16px; }
+  .mes-nav { display: flex; align-items: center; gap: 4px; }
+  .mes-nav strong { min-width: 158px; text-align: center; font-size: 16px; font-weight: 650; }
+  .mes-nav .btn { width: 40px; padding: 0; }
+  .ferramentas .filtro { width: 132px; }
+  .ferramentas .espaco { flex: 1 1 auto; }
+
+  /* Indicadores */
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(176px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .kpi { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; }
+  .kpi .rot { font-size: 12.5px; color: var(--muted); font-weight: 550; }
+  .kpi .val { font-size: 27px; font-weight: 680; letter-spacing: -.02em; line-height: 1.25; font-variant-numeric: tabular-nums; }
+  .kpi .sub { font-size: 12.5px; color: var(--muted); }
+  .kpi.ruim { border-color: #eeb4b4; background: var(--danger-soft); }
+  .kpi.ruim .val { color: var(--danger); }
+  .medidor { height: 8px; border-radius: 4px; background: #e7ebf0; overflow: hidden; }
+  .medidor i { display: block; height: 100%; border-radius: 4px; background: var(--accent); }
+  .medidor.ruim i { background: var(--danger); }
+  .kpi .medidor { margin: 6px 0 4px; }
+
+  /* Alertas */
+  .alerta { border-radius: var(--radius); padding: 12px 14px; margin-bottom: 16px; border: 1px solid; }
+  .alerta.furo { background: var(--danger-soft); border-color: #eeb4b4; }
+  .alerta.furo h2 { color: var(--danger); font-size: 15px; font-weight: 680; }
+  .alerta.ok { background: var(--ok-soft); border-color: #b6dfc6; color: var(--ok); font-weight: 600; font-size: 14px; }
+  .furos { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; max-height: 148px; overflow-y: auto; }
+  .furos li {
+    background: #fff; border: 1px solid #eeb4b4; border-radius: 6px; padding: 3px 8px;
+    font-size: 12.5px; color: #8f1616; font-variant-numeric: tabular-nums;
+  }
+  .furos b { color: var(--danger); }
+
+  /* Grade */
+  .legenda { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; font-size: 12.5px; color: var(--muted); margin-bottom: 10px; }
+  .legenda span.i { display: inline-flex; align-items: center; gap: 5px; }
+  .amostra { width: 20px; height: 20px; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 650; }
+  .grade-wrap { overflow: auto; max-height: 78vh; border: 1px solid var(--line); border-radius: 8px; -webkit-overflow-scrolling: touch; }
+  table.grade { border-collapse: separate; border-spacing: 0; font-size: 12.5px; width: 100%; font-variant-numeric: tabular-nums; }
+  .grade th, .grade td { padding: 2px; text-align: center; background: #fff; }
+  .grade thead th {
+    position: sticky; top: 0; z-index: 3; font-weight: 600; font-size: 11.5px; color: var(--muted);
+    border-bottom: 1px solid var(--line); padding: 5px 1px; min-width: 30px; line-height: 1.2;
+  }
+  .grade thead th b { display: block; font-size: 12.5px; color: var(--ink); font-weight: 650; }
+  .grade thead th.fds { background: #eef1f5; }
+  .grade thead th.hoje b { color: #fff; background: var(--accent); border-radius: 4px; margin: 0 3px; }
+  .grade thead th.comfuro { background: var(--danger); color: #fff; }
+  .grade thead th.comfuro b { color: #fff; }
+  .grade .nome {
+    position: sticky; left: 0; z-index: 2; text-align: left; padding: 3px 8px; min-width: 140px; max-width: 176px;
+    border-right: 1px solid var(--line);
+  }
+  .grade thead .nome { z-index: 4; color: var(--ink); }
+  .grade .nome strong { display: block; font-weight: 550; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 13px; }
+  .grade .nome small { color: var(--muted); font-size: 11px; display: block; line-height: 1.15; }
+  .grade tr.grupo td { background: #eef1f5; font-weight: 650; font-size: 12.5px; text-align: left; padding: 5px 8px; border-top: 1px solid var(--line); }
+  .grade tr.grupo td.nome { background: #eef1f5; white-space: nowrap; }
+  .grade .dia {
+    display: flex; align-items: center; justify-content: center; width: 100%; min-width: 26px; height: 28px;
+    border: 0; border-radius: 4px; padding: 0; font-size: 11.5px; font-weight: 600;
+  }
+  .grade .dia.t { background: var(--work); color: var(--work-ink); }
+  .grade .dia.f { background: var(--off); color: var(--off-ink); font-weight: 750; cursor: pointer; }
+  .grade .dia.f:hover { box-shadow: inset 0 0 0 2px var(--off-ink); }
+  .grade .dia.f.marcada { background: var(--accent); color: #fff; }
+  .grade .dia.n { background: #f1f3f5; color: #9aa5b1; }
+  .grade .tot { padding: 2px 6px; font-weight: 600; white-space: nowrap; border-left: 1px solid var(--line); min-width: 44px; }
+  .grade .tot.ruim { color: var(--danger); }
+  .grade tr.cob td { font-size: 11.5px; color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--line); }
+  .grade tr.cob td.nome { font-weight: 550; font-size: 11.5px; }
+  .grade tr.cob td.furo { background: var(--danger); color: #fff; font-weight: 750; border-radius: 4px; }
+  .dica-troca { margin-top: 8px; font-size: 13px; color: var(--muted); }
+  .dica-troca.ativa { color: var(--accent); font-weight: 600; }
+  .vazio { text-align: center; padding: 36px 16px; color: var(--muted); }
+  .vazio .btn { margin-top: 12px; }
+
+  /* Painéis inferiores */
+  .duas { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; align-items: start; }
+  .duas > .cartao { margin-bottom: 0; }
+  .duas { margin-bottom: 16px; }
+  .cob-linha { display: grid; grid-template-columns: 124px 1fr 66px; gap: 10px; align-items: center; padding: 5px 0; font-size: 13px; }
+  .cob-linha .pct { text-align: right; font-weight: 650; font-variant-numeric: tabular-nums; }
+  .cob-linha .pct.ruim { color: var(--danger); }
+
+  table.lista { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+  .lista th { text-align: left; font-size: 12px; color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--line); padding: 6px 8px; white-space: nowrap; }
+  .lista td { padding: 7px 8px; border-bottom: 1px solid #edf0f3; vertical-align: middle; }
+  .lista tr:last-child td { border-bottom: 0; }
+  .lista .num { text-align: right; font-variant-numeric: tabular-nums; }
+  .lista .ruim { color: var(--danger); font-weight: 650; }
+  .rolagem { overflow-x: auto; }
+  .rolagem-v { max-height: 372px; overflow-y: auto; }
+
+  /* Formulários */
+  .form-linha { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; align-items: end; }
+  .form-linha .largo { grid-column: span 2; }
+  .acoes { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .acoes-linha { display: flex; gap: 6px; justify-content: flex-end; }
+  .checagens { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 4px; font-size: 13.5px; }
+  .checagens li { padding: 5px 10px; border-radius: 6px; }
+  .checagens .ok { background: var(--ok-soft); color: var(--ok); }
+  .checagens .erro { background: var(--danger-soft); color: var(--danger); font-weight: 600; }
+  .checagens .aviso { background: var(--warn-soft); color: var(--warn); }
+  table.minimos { border-collapse: collapse; }
+  .minimos th { font-size: 13px; font-weight: 600; color: var(--muted); padding: 4px 12px 4px 0; text-align: left; }
+  .minimos td { padding: 4px 12px 4px 0; }
+  .minimos input { width: 76px; text-align: center; }
+
+  .toast {
+    position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); background: #1b2733; color: #fff;
+    padding: 10px 16px; border-radius: 8px; font-size: 14px; box-shadow: 0 6px 20px rgba(0,0,0,.25);
+    z-index: 50; max-width: calc(100vw - 32px);
+  }
+  .impressao-titulo { display: none; }
+  footer { max-width: 1320px; margin: 0 auto; padding: 0 16px 24px; color: var(--muted); font-size: 12.5px; }
+
+  @media (max-width: 640px) {
+    .topo h1 { font-size: 17px; }
+    main { padding: 12px; }
+    .cartao { padding: 12px; }
+    .form-linha .largo { grid-column: auto; }
+    .ferramentas .filtro { flex: 1 1 40%; width: auto; }
+    .mes-nav { width: 100%; justify-content: space-between; }
+    .ferramentas .espaco { display: none; }
+    .ferramentas .btn.grande { flex: 1 1 40%; }
+    .grade .nome { min-width: 112px; max-width: 124px; padding: 3px 6px; }
+    .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .kpi { padding: 10px 11px; }
+    .kpi .val { font-size: 23px; }
+    .kpi:last-child:nth-child(odd) { grid-column: 1 / -1; }
+    .abas { gap: 0; }
+    .abas button { padding: 10px 8px; font-size: 13.5px; }
+  }
+
+  @page { size: A4 landscape; margin: 8mm; }
+  @media print {
+    body { background: #fff; font-size: 10pt; }
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .topo, .ferramentas, .aviso-exemplo, .aviso-info, .dica-troca, footer, .toast, .duas, .sem-print { display: none !important; }
+    main { max-width: none; padding: 0; }
+    .aba { display: none !important; }
+    #aba-escala { display: block !important; }
+    .impressao-titulo { display: block; margin-bottom: 6px; }
+    .impressao-titulo h1 { font-size: 14pt; }
+    .kpis { grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 6px; }
+    .kpi { padding: 4px 8px; break-inside: avoid; }
+    .kpi .val { font-size: 14pt; }
+    .kpi .medidor, .kpi .sub, .legenda { display: none; }
+    .alerta { padding: 4px 8px; margin-bottom: 6px; }
+    .furos { max-height: none; overflow: visible; margin-top: 3px; gap: 2px; }
+    .furos li { font-size: 7.5pt; padding: 0 4px; }
+    .cartao { border: 0; padding: 0; margin: 0; }
+    .grade-wrap { overflow: visible; max-height: none; border: 0; }
+    .grade thead th, .grade .nome { position: static; }
+    table.grade { font-size: 7.5pt; table-layout: fixed; }
+    .grade thead th.nome { width: 34mm; }
+    .grade thead th:nth-last-child(-n+2) { width: 10mm; }
+    .grade thead th { min-width: 0; padding: 1px 0; font-size: 6.5pt; }
+    .grade thead th b { font-size: 7.5pt; }
+    .grade th, .grade td { padding: 1px; }
+    .grade .nome { min-width: 0; max-width: none; padding: 0 3px; }
+    .grade .nome strong { font-size: 7.5pt; }
+    .grade .nome small { display: none; }
+    .grade .dia { height: 3.2mm; min-width: 0; font-size: 6pt; border-radius: 2px; }
+    .grade .tot { min-width: 0; padding: 0 1px; }
+    .grade tr.cob td, .grade tr.cob td.nome { font-size: 6.5pt; }
+    .grade tr.grupo td { padding: 1px 3px; font-size: 7.5pt; }
+    .grade tr { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<header class="topo">
+  <div class="topo-in">
+    <h1>Escala 5x2 · Rede de Postos (protótipo)</h1>
+    <p>Cliente: Renê Abbad · 2 postos de combustível</p>
+    <nav class="abas" role="tablist" aria-label="Seções">
+      <button role="tab" data-aba="escala" aria-selected="true">Escala</button>
+      <button role="tab" data-aba="colaboradores" aria-selected="false">Colaboradores</button>
+      <button role="tab" data-aba="trocas" aria-selected="false">Trocas de folga</button>
+      <button role="tab" data-aba="ajustes" aria-selected="false">Ajustes</button>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="aviso-exemplo" id="avisoExemplo" hidden>
+    <span><span class="tag">Dados de exemplo</span>&nbsp; <span id="avisoExemploTexto"></span></span>
+    <button class="btn peq" id="btnRemoverExemplos">Remover dados de exemplo</button>
+  </div>
+
+  <!-- ESCALA -->
+  <section class="aba ativa" id="aba-escala">
+    <div class="impressao-titulo">
+      <h1>Escala 5x2 · Rede de Postos (protótipo)</h1>
+      <p id="impressaoSub"></p>
+    </div>
+    <div class="ferramentas">
+      <div class="mes-nav">
+        <button class="btn" id="mesAnt" aria-label="Mês anterior">‹</button>
+        <strong id="mesRotulo"></strong>
+        <button class="btn" id="mesProx" aria-label="Próximo mês">›</button>
+      </div>
+      <button class="btn prim grande" id="btnGerar">Gerar escala</button>
+      <label class="campo filtro">Posto
+        <select id="filtroPosto">
+          <option value="todos">Todos</option>
+          <option value="1">Posto 1</option>
+          <option value="2">Posto 2</option>
+        </select>
+      </label>
+      <label class="campo filtro">Turno
+        <select id="filtroTurno">
+          <option value="todos">Todos</option>
+          <option value="manha">Manhã</option>
+          <option value="tarde">Tarde</option>
+          <option value="noite">Noite</option>
+        </select>
+      </label>
+      <span class="espaco"></span>
+      <button class="btn grande" id="btnCsv">Exportar CSV</button>
+      <button class="btn grande" id="btnImprimir">Imprimir</button>
+    </div>
+    <div id="avisoPendentes" class="aviso-info" hidden></div>
+    <div id="conteudoEscala"></div>
+  </section>
+
+  <!-- COLABORADORES -->
+  <section class="aba" id="aba-colaboradores">
+    <form class="cartao" id="formColab" autocomplete="off">
+      <h2 id="formColabTitulo">Novo colaborador</h2>
+      <input type="hidden" id="colabId">
+      <div class="form-linha">
+        <label class="campo largo">Nome
+          <input type="text" id="colabNome" maxlength="60" required placeholder="Nome completo">
+        </label>
+        <label class="campo">Função
+          <select id="colabFuncao">
+            <option value="frentista">Frentista</option>
+            <option value="caixa">Caixa</option>
+            <option value="gerente">Gerente</option>
+            <option value="conveniencia">Conveniência</option>
+          </select>
+        </label>
+        <label class="campo">Posto
+          <select id="colabPosto">
+            <option value="1">Posto 1</option>
+            <option value="2">Posto 2</option>
+          </select>
+        </label>
+        <label class="campo">Turno
+          <select id="colabTurno">
+            <option value="manha">Manhã</option>
+            <option value="tarde">Tarde</option>
+            <option value="noite">Noite</option>
+          </select>
+        </label>
+      </div>
+      <div class="acoes">
+        <button class="btn prim" type="submit" id="btnSalvarColab">Adicionar</button>
+        <button class="btn" type="button" id="btnCancelarColab" hidden>Cancelar edição</button>
+      </div>
+    </form>
+    <div class="cartao">
+      <h2 id="tituloListaColab">Colaboradores</h2>
+      <div class="rolagem"><table class="lista" id="tabelaColab"></table></div>
+    </div>
+  </section>
+
+  <!-- TROCAS -->
+  <section class="aba" id="aba-trocas">
+    <div class="cartao">
+      <h2>Trocar folga entre dois colaboradores · <span id="trocaMes"></span></h2>
+      <p class="sutil" style="margin-bottom:12px">Cada um assume o dia de folga do outro. As folgas precisam estar na mesma semana (segunda a domingo) para manter 5 dias trabalhados e 2 folgas.</p>
+      <div class="form-linha">
+        <label class="campo">Colaborador A
+          <select id="trocaA"></select>
+        </label>
+        <label class="campo">Folga de A que será trocada
+          <select id="trocaX"></select>
+        </label>
+        <label class="campo">Colaborador B
+          <select id="trocaB"></select>
+        </label>
+        <label class="campo">Folga de B que será trocada
+          <select id="trocaY"></select>
+        </label>
+      </div>
+      <ul class="checagens" id="trocaChecagens" aria-live="polite"></ul>
+      <div class="acoes">
+        <button class="btn prim" id="btnConfirmarTroca" disabled>Confirmar troca</button>
+        <button class="btn" id="btnLimparTroca">Limpar</button>
+      </div>
+    </div>
+    <div class="cartao">
+      <h2>Histórico</h2>
+      <div class="rolagem rolagem-v" id="historico"></div>
+    </div>
+  </section>
+
+  <!-- AJUSTES -->
+  <section class="aba" id="aba-ajustes">
+    <div class="cartao">
+      <h2>Cobertura mínima por posto e turno</h2>
+      <p class="sutil" style="margin-bottom:10px">Número mínimo de pessoas trabalhando por dia, somando todas as funções. Vale imediatamente para os alertas; gere a escala de novo para o sistema tentar atender aos novos mínimos.</p>
+      <div class="rolagem"><table class="minimos" id="tabelaMinimos"></table></div>
+    </div>
+    <div class="cartao">
+      <h2>Jornada</h2>
+      <label class="campo" style="max-width:220px">Horas por dia trabalhado
+        <input type="number" id="horasDia" min="1" max="12" step="0.5">
+      </label>
+      <p class="sutil" style="margin-top:6px">Usado no cálculo de horas por pessoa. Com 8 h por dia, a semana de 5 dias soma 40 h.</p>
+    </div>
+    <div class="cartao">
+      <h2>Regras usadas na geração e nas trocas</h2>
+      <ul class="sutil" style="margin:0;padding-left:18px">
+        <li>Exatamente 2 folgas em cada semana (segunda a domingo), em dias seguidos sempre que possível.</li>
+        <li>No máximo 6 dias trabalhados seguidos, inclusive na virada de semana e de mês.</li>
+        <li>Pelo menos 1 folga no mês caindo em sábado ou domingo, por pessoa.</li>
+        <li>Quando o mês vizinho já tem escala, a semana compartilhada é mantida para não quebrar a sequência.</li>
+      </ul>
+    </div>
+    <div class="cartao">
+      <h2>Dados</h2>
+      <p class="sutil" style="margin-bottom:10px">Tudo fica salvo apenas neste navegador.</p>
+      <button class="btn perigo" id="btnRestaurar">Apagar tudo e restaurar exemplos</button>
+    </div>
+  </section>
+</main>
+
+<footer>Protótipo para validação. Os dados ficam neste aparelho e funcionam sem internet.</footer>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script>
+'use strict';
+
+/* ---------- Constantes ---------- */
+const CHAVE = 'escala5x2.rede.v1';
+const POSTOS = [1, 2];
+const TURNOS = { manha: 'Manhã', tarde: 'Tarde', noite: 'Noite' };
+const FUNCOES = { frentista: 'Frentista', caixa: 'Caixa', gerente: 'Gerente', conveniencia: 'Conveniência' };
+const MESES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+const DIAS_CURTOS = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
+const DIAS_LETRA = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
+const MAX_SEGUIDOS = 6;
+const TENTATIVAS = 400;
+// Todos os pares de folga possíveis na semana (0 = segunda ... 6 = domingo).
+const PARES = [];
+for (let i = 0; i < 6; i++) for (let j = i + 1; j < 7; j++) PARES.push([i, j]);
+
+const EXEMPLOS = [
+  ['Carlos Mendes', 1, 'manha'], ['Juliana Prado', 1, 'manha'], ['Rafael Teixeira', 1, 'manha'],
+  ['Marcos Vieira', 1, 'tarde'], ['Patrícia Lima', 1, 'tarde'],
+  ['Anderson Rocha', 1, 'noite'], ['Sidnei Barros', 1, 'noite'],
+  ['Fernanda Dias', 2, 'manha'], ['Paulo Nogueira', 2, 'manha'], ['Thiago Freitas', 2, 'manha'],
+  ['Luciana Campos', 2, 'tarde'], ['Bruno Sales', 2, 'tarde'],
+  ['Edson Moraes', 2, 'noite'], ['Vanessa Pires', 2, 'noite']
+];
+
+/* ---------- Datas (sempre strings AAAA-MM-DD, sem fuso) ---------- */
+const pad = n => String(n).padStart(2, '0');
+const paraData = s => { const [a, m, d] = s.split('-').map(Number); return new Date(a, m - 1, d); };
+const paraIso = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const somaDias = (s, n) => { const d = paraData(s); d.setDate(d.getDate() + n); return paraIso(d); };
+const diaSemana = s => paraData(s).getDay();
+const segundaDe = s => somaDias(s, -((diaSemana(s) + 6) % 7));
+const mesDe = s => s.slice(0, 7);
+const ehFds = s => { const d = diaSemana(s); return d === 0 || d === 6; };
+const difDias = (a, b) => {
+  const [x, y] = [a, b].map(s => { const [an, m, d] = s.split('-').map(Number); return Date.UTC(an, m - 1, d); });
+  return Math.round((x - y) / 86400000);
+};
+const curta = s => `${s.slice(8, 10)}/${s.slice(5, 7)}`;
+const curtaDia = s => `${DIAS_CURTOS[diaSemana(s)]} ${curta(s)}`;
+const hojeIso = paraIso(new Date());
+
+function diasDoMes(chave) {
+  const [a, m] = chave.split('-').map(Number);
+  const total = new Date(a, m, 0).getDate();
+  return Array.from({ length: total }, (_, i) => `${chave}-${pad(i + 1)}`);
+}
+function mudaMes(chave, delta) {
+  const [a, m] = chave.split('-').map(Number);
+  const d = new Date(a, m - 1 + delta, 1);
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}`;
+}
+const rotuloMes = chave => `${MESES[Number(chave.slice(5, 7)) - 1]} de ${chave.slice(0, 4)}`;
+
+/* ---------- Estado ---------- */
+function estadoInicial() {
+  const min = {};
+  POSTOS.forEach(p => { min[`${p}-manha`] = 2; min[`${p}-tarde`] = 1; min[`${p}-noite`] = 1; });
+  return {
+    emps: EXEMPLOS.map(([nome, posto, turno], i) => ({ id: `c${i + 1}`, nome, funcao: 'frentista', posto, turno, exemplo: true })),
+    proxId: EXEMPLOS.length + 1,
+    min,
+    horasDia: 8,
+    semanas: {},   // { idColab: { segundaIso: [folga1, folga2] } }
+    geradas: {},   // { 'AAAA-MM': timestamp }
+    historico: [],
+    mes: mesDe(hojeIso),
+    filtro: { posto: 'todos', turno: 'todos' },
+    contaGeracao: 0
+  };
+}
+
+let estado;
+function carregar() {
+  try {
+    const bruto = localStorage.getItem(CHAVE);
+    if (bruto) {
+      const salvo = JSON.parse(bruto);
+      if (salvo && Array.isArray(salvo.emps) && salvo.semanas) {
+        estado = Object.assign(estadoInicial(), salvo);
+        return;
+      }
+    }
+  } catch (e) { /* armazenamento indisponível ou corrompido: recomeça com exemplos */ }
+  estado = estadoInicial();
+  gerarMes(estado.mes);
+  registrarGeracao(estado.mes);
+  salvar();
+}
+function salvar() {
+  try { localStorage.setItem(CHAVE, JSON.stringify(estado)); }
+  catch (e) { avisar('Não foi possível salvar neste navegador.'); }
+}
+
+const empPorId = id => estado.emps.find(e => e.id === id);
+const chaveGrupo = (posto, turno) => `${posto}-${turno}`;
+const minDe = (posto, turno) => Number(estado.min[chaveGrupo(posto, turno)]) || 0;
+const ordemTurno = t => Object.keys(TURNOS).indexOf(t);
+function empsOrdenados() {
+  return estado.emps.slice().sort((a, b) =>
+    a.posto - b.posto || ordemTurno(a.turno) - ordemTurno(b.turno) || a.nome.localeCompare(b.nome, 'pt-BR'));
+}
+const passaFiltro = (posto, turno) =>
+  (estado.filtro.posto === 'todos' || Number(estado.filtro.posto) === posto) &&
+  (estado.filtro.turno === 'todos' || estado.filtro.turno === turno);
+
+/* 'F' folga, 'T' trabalho, null sem escala */
+function situacao(idEmp, data) {
+  const sem = (estado.semanas[idEmp] || {})[segundaDe(data)];
+  if (!sem) return null;
+  return sem.includes(data) ? 'F' : 'T';
+}
+function contaTrabalhando(data, posto, turno) {
+  return estado.emps.filter(e => e.posto === posto && e.turno === turno && situacao(e.id, data) === 'T').length;
+}
+
+/* ---------- Geração automática ---------- */
+function geradorAleatorio(semente) {
+  let s = semente >>> 0;
+  return () => {
+    s = (s + 0x6D2B79F5) >>> 0;
+    let t = s;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/* Semana que encosta em mês vizinho já gerado fica preservada. */
+function semanaFixa(idEmp, segunda, chave) {
+  if (!(estado.semanas[idEmp] || {})[segunda]) return false;
+  for (let i = 0; i < 7; i++) {
+    const m = mesDe(somaDias(segunda, i));
+    if (m !== chave && estado.geradas[m]) return true;
+  }
+  return false;
+}
+
+function gerarMes(chave) {
+  const dias = diasDoMes(chave);
+  const segundas = [];
+  for (let s = segundaDe(dias[0]); s <= dias[dias.length - 1]; s = somaDias(s, 7)) segundas.push(s);
+  estado.contaGeracao = (estado.contaGeracao || 0) + 1;
+  const sorteio = geradorAleatorio(Number(chave.replace('-', '')) * 31 + estado.contaGeracao * 7919);
+  POSTOS.forEach(posto => Object.keys(TURNOS).forEach(turno => {
+    const grupo = estado.emps.filter(e => e.posto === posto && e.turno === turno);
+    if (grupo.length) resolverGrupo(grupo, minDe(posto, turno), chave, segundas, sorteio);
+  }));
+  estado.geradas[chave] = Date.now();
+}
+
+function resolverGrupo(grupo, minimo, chave, segundas, sorteio) {
+  let melhor = null;
+  for (let t = 0; t < TENTATIVAS; t++) {
+    const plano = tentarPlano(grupo, minimo, chave, segundas, sorteio);
+    if (!melhor || plano.nota < melhor.nota) melhor = plano;
+    if (plano.perfeito) break;
+  }
+  grupo.forEach(e => {
+    if (!estado.semanas[e.id]) estado.semanas[e.id] = {};
+    Object.assign(estado.semanas[e.id], melhor.folgas[e.id]);
+  });
+}
+
+function tentarPlano(grupo, minimo, chave, segundas, sorteio) {
+  const folgaLivre = Math.max(0, grupo.length - minimo);
+  const creditaFds = data => ehFds(data) && mesDe(data) === chave;
+  // Menor início de par seguido (0=seg/ter ... 5=sáb/dom) que alcança um fim de semana do mês, por semana.
+  const alcanceFds = segundas.map(seg =>
+    mesDe(somaDias(seg, 5)) === chave ? 4 : mesDe(somaDias(seg, 6)) === chave ? 5 : Infinity);
+  const alcanca = (inicio, i) => {
+    for (let j = i + 1; j < segundas.length; j++) if (inicio + (j - i) >= alcanceFds[j]) return true;
+    return false;
+  };
+
+  const folgas = {}, credito = {}, ultima = {};
+  grupo.forEach(e => {
+    folgas[e.id] = {};
+    credito[e.id] = 0;
+    const anterior = (estado.semanas[e.id] || {})[somaDias(segundas[0], -7)];
+    ultima[e.id] = anterior && anterior.length ? anterior[anterior.length - 1] : null;
+    segundas.forEach(seg => {
+      if (semanaFixa(e.id, seg, chave)) credito[e.id] += estado.semanas[e.id][seg].filter(creditaFds).length;
+    });
+  });
+
+  let falta = 0, quebras = 0, separadas = 0;
+  segundas.forEach((seg, i) => {
+    const dias = Array.from({ length: 7 }, (_, d) => somaDias(seg, d));
+    const folgasDia = new Array(7).fill(0);
+    const livres = [];
+    grupo.forEach(e => {
+      if (semanaFixa(e.id, seg, chave)) {
+        const fixas = estado.semanas[e.id][seg];
+        fixas.forEach(f => { folgasDia[dias.indexOf(f)]++; });
+        if (fixas.length) ultima[e.id] = fixas[fixas.length - 1];
+      } else {
+        livres.push(e);
+      }
+    });
+    // Quem ainda não tem folga no fim de semana escolhe primeiro.
+    livres.sort((a, b) => (credito[a.id] > 0) - (credito[b.id] > 0) || sorteio() - 0.5);
+
+    livres.forEach(e => {
+      const proxSeg = somaDias(seg, 7);
+      const proxGuardada = (estado.semanas[e.id] || {})[proxSeg];
+      const proxFixa = proxGuardada && (i + 1 >= segundas.length || semanaFixa(e.id, proxSeg, chave)) ? proxGuardada[0] : null;
+      let escolha = null, custoMin = Infinity, quebraEscolha = false;
+      PARES.forEach(([d1, d2]) => {
+        const a = dias[d1], b = dias[d2];
+        if (ultima[e.id] && difDias(a, ultima[e.id]) - 1 > MAX_SEGUIDOS) return;
+        let custo = sorteio() * 3;
+        // Folgas separadas só entram quando evitam furo ou garantem o fim de semana.
+        if (d2 !== d1 + 1) custo += 60;
+        const quebra = !!proxFixa && difDias(proxFixa, b) - 1 > MAX_SEGUIDOS;
+        if (quebra) custo += 5000;
+        [d1, d2].forEach(d => {
+          if (folgasDia[d] >= folgaLivre) custo += 100;
+          custo += folgasDia[d] * 2;
+        });
+        const ganho = [a, b].filter(creditaFds).length;
+        if (credito[e.id] === 0) {
+          if (ganho > 0) custo -= 40;
+          else if (!alcanca(d2 - 1, i)) custo += 800;
+        } else {
+          custo += ganho * credito[e.id] * 6;
+        }
+        if (custo < custoMin) { custoMin = custo; escolha = [d1, d2]; quebraEscolha = quebra; }
+      });
+      if (!escolha) escolha = [0, 1];
+      if (quebraEscolha) quebras++;
+      if (escolha[1] !== escolha[0] + 1) separadas++;
+      const a = dias[escolha[0]], b = dias[escolha[1]];
+      folgas[e.id][seg] = [a, b];
+      folgasDia[escolha[0]]++;
+      folgasDia[escolha[1]]++;
+      credito[e.id] += [a, b].filter(creditaFds).length;
+      ultima[e.id] = b;
+    });
+
+    folgasDia.forEach(n => { falta += Math.max(0, minimo - (grupo.length - n)); });
+  });
+
+  const creditos = grupo.map(e => credito[e.id]);
+  const semFds = creditos.filter(c => c === 0).length;
+  const dispersao = Math.max(...creditos) - Math.min(...creditos);
+  return {
+    folgas,
+    nota: quebras * 1e7 + semFds * 1e5 + falta * 1e3 + separadas * 50 + dispersao * 10,
+    perfeito: quebras === 0 && semFds === 0 && falta === 0 && separadas === 0 && dispersao <= 1
+  };
+}
+
+/* ---------- Cálculos ---------- */
+function coberturaDoMes(chave) {
+  let vagas = 0, preenchidas = 0;
+  const furos = [], porGrupo = [];
+  POSTOS.forEach(posto => Object.keys(TURNOS).forEach(turno => {
+    if (!passaFiltro(posto, turno)) return;
+    const minimo = minDe(posto, turno);
+    let v = 0, p = 0;
+    diasDoMes(chave).forEach(data => {
+      const n = contaTrabalhando(data, posto, turno);
+      v += minimo;
+      p += Math.min(n, minimo);
+      if (n < minimo) furos.push({ data, posto, turno, n, minimo });
+    });
+    vagas += v; preenchidas += p;
+    porGrupo.push({ posto, turno, minimo, pct: v ? p / v * 100 : null });
+  }));
+  furos.sort((a, b) => a.data.localeCompare(b.data) || a.posto - b.posto || ordemTurno(a.turno) - ordemTurno(b.turno));
+  return { pct: vagas ? preenchidas / vagas * 100 : null, vagas, preenchidas, furos, porGrupo };
+}
+
+function estatPessoa(emp, chave) {
+  let dias = 0, folgas = 0, fds = 0, sem = 0;
+  diasDoMes(chave).forEach(data => {
+    const st = situacao(emp.id, data);
+    if (st === 'T') dias++;
+    else if (st === 'F') { folgas++; if (ehFds(data)) fds++; }
+    else sem++;
+  });
+  return { dias, folgas, fds, sem, horas: dias * estado.horasDia };
+}
+
+function maiorSequencia(idEmp) {
+  const semanas = estado.semanas[idEmp] || {};
+  const todas = Object.values(semanas).flat().sort();
+  let maior = 0;
+  for (let i = 1; i < todas.length; i++) {
+    if (difDias(segundaDe(todas[i]), segundaDe(todas[i - 1])) <= 7) maior = Math.max(maior, difDias(todas[i], todas[i - 1]) - 1);
+  }
+  return maior;
+}
+const semanasCompletas = idEmp => Object.values(estado.semanas[idEmp] || {}).every(l => l.length === 2);
+const cumpreRegra = idEmp => semanasCompletas(idEmp) && maiorSequencia(idEmp) <= MAX_SEGUIDOS;
+
+/* ---------- Troca de folga ---------- */
+function moverFolga(idEmp, sai, entra) {
+  const sem = estado.semanas[idEmp];
+  sem[segundaDe(sai)] = sem[segundaDe(sai)].filter(d => d !== sai);
+  sem[segundaDe(entra)] = [...sem[segundaDe(entra)], entra].sort();
+}
+function aplicarTroca(idA, x, idB, y) {
+  moverFolga(idA, x, y);
+  moverFolga(idB, y, x);
+}
+
+function validarTroca(idA, x, idB, y) {
+  const a = empPorId(idA), b = empPorId(idB);
+  const itens = [];
+  if (!a || !b || !x || !y) return { itens, pode: false };
+  const add = (tipo, msg) => itens.push({ tipo, msg });
+
+  if (idA === idB) { add('erro', 'Escolha dois colaboradores diferentes.'); return { itens, pode: false }; }
+  const coerente = situacao(idA, x) === 'F' && situacao(idB, y) === 'F' && situacao(idA, y) === 'T' && situacao(idB, x) === 'T';
+  if (!coerente) {
+    if (x === y) add('erro', 'Os dois já folgam nesse mesmo dia: não há o que trocar.');
+    else {
+      if (situacao(idA, y) !== 'T') add('erro', `${a.nome} já não trabalha em ${curta(y)}, então não pode assumir essa folga.`);
+      if (situacao(idB, x) !== 'T') add('erro', `${b.nome} já não trabalha em ${curta(x)}, então não pode assumir essa folga.`);
+    }
+    return { itens, pode: false };
+  }
+  add('ok', `${a.nome} passa a folgar em ${curtaDia(y)} e ${b.nome} em ${curtaDia(x)}.`);
+
+  // Simula a troca, mede e desfaz.
+  const grupos = [[a.posto, a.turno], [b.posto, b.turno]];
+  const antes = new Map();
+  [x, y].forEach(d => grupos.forEach(([p, t]) => antes.set(`${d}|${p}|${t}`, contaTrabalhando(d, p, t))));
+  const mes = mesDe(x);
+  aplicarTroca(idA, x, idB, y);
+
+  const pessoas = [a, b];
+  const semanaOk = pessoas.every(e => semanasCompletas(e.id));
+  if (semanaOk) add('ok', 'Regra 5x2: 5 dias trabalhados e 2 folgas em cada semana.');
+  else add('erro', 'Regra 5x2: as folgas estão em semanas diferentes; cada semana precisa manter 2 folgas.');
+
+  const estourou = pessoas.filter(e => maiorSequencia(e.id) > MAX_SEGUIDOS);
+  if (estourou.length) estourou.forEach(e => add('erro', `${e.nome} ficaria ${maiorSequencia(e.id)} dias seguidos trabalhando (máximo ${MAX_SEGUIDOS}).`));
+  else add('ok', `Nenhum dos dois passa de ${MAX_SEGUIDOS} dias seguidos.`);
+
+  const semFds = pessoas.filter(e => estatPessoa(e, mes).fds < 1);
+  if (semFds.length) semFds.forEach(e => add('erro', `${e.nome} ficaria sem folga no fim de semana neste mês.`));
+  else add('ok', 'Os dois mantêm ao menos 1 folga no fim de semana no mês.');
+
+  const furosNovos = [];
+  antes.forEach((n0, k) => {
+    const [d, p, t] = k.split('|');
+    const n1 = contaTrabalhando(d, Number(p), t);
+    if (n1 < n0 && n1 < minDe(Number(p), t)) furosNovos.push(`${curta(d)} · Posto ${p} · ${TURNOS[t]} (${n1} de ${minDe(Number(p), t)})`);
+  });
+  aplicarTroca(idA, y, idB, x);
+
+  if (furosNovos.length) add('erro', `Criaria furo de cobertura: ${[...new Set(furosNovos)].join('; ')}.`);
+  else add('ok', 'Não cria furo de cobertura.');
+
+  if (a.funcao !== b.funcao) add('aviso', `Atenção: funções diferentes (${FUNCOES[a.funcao]} e ${FUNCOES[b.funcao]}).`);
+  if (a.posto !== b.posto || a.turno !== b.turno) add('aviso', 'Atenção: posto ou turno diferentes; os dias mudam de equipe.');
+
+  return { itens, pode: !itens.some(i => i.tipo === 'erro') };
+}
+
+/* ---------- Histórico ---------- */
+function registrarGeracao(mes) {
+  estado.historico.unshift({ ts: Date.now(), tipo: 'geracao', mes });
+  estado.historico = estado.historico.slice(0, 300);
+}
+const dataHora = ts => {
+  const d = new Date(ts);
+  return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
+
+/* ---------- Interface: utilidades ---------- */
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const fmtNum = (n, casas = 0) => n.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: casas });
+const fmtPct = n => n === null ? '—' : `${fmtNum(n, n === 100 ? 0 : 1)}%`;
+
+let toastTimer;
+function avisar(msg) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.hidden = true; }, 3600);
+}
+
+function trocarAba(nome) {
+  document.querySelectorAll('.abas button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.aba === nome)));
+  document.querySelectorAll('.aba').forEach(s => s.classList.toggle('ativa', s.id === `aba-${nome}`));
+  window.scrollTo(0, 0);
+}
+
+/* ---------- Interface: Escala ---------- */
+let marcacao = null;   // primeira folga tocada na grade { id, data }
+
+function renderEscala() {
+  const chave = estado.mes;
+  $('mesRotulo').textContent = rotuloMes(chave);
+  $('filtroPosto').value = estado.filtro.posto;
+  $('filtroTurno').value = estado.filtro.turno;
+  $('btnGerar').textContent = estado.geradas[chave] ? 'Gerar novamente' : 'Gerar escala';
+
+  const filtroTxt = [
+    estado.filtro.posto === 'todos' ? 'Todos os postos' : `Posto ${estado.filtro.posto}`,
+    estado.filtro.turno === 'todos' ? 'todos os turnos' : `turno ${TURNOS[estado.filtro.turno].toLowerCase()}`
+  ].join(' · ');
+  $('impressaoSub').textContent = `${rotuloMes(chave)} · ${filtroTxt} · T = trabalho, F = folga`;
+
+  const alvo = $('conteudoEscala');
+  const pendentes = estado.geradas[chave] ? estado.emps.filter(e => estatPessoa(e, chave).sem > 0) : [];
+  const av = $('avisoPendentes');
+  av.hidden = pendentes.length === 0;
+  av.textContent = pendentes.length
+    ? `${pendentes.map(e => e.nome).join(', ')} ainda sem escala neste mês. Use “Gerar novamente” para incluir.`
+    : '';
+
+  if (!estado.emps.length) {
+    alvo.innerHTML = `<div class="cartao vazio">Nenhum colaborador cadastrado.<br>
+      <button class="btn prim" data-ir="colaboradores">Cadastrar colaboradores</button></div>`;
+    return;
+  }
+  if (!estado.geradas[chave]) {
+    alvo.innerHTML = `<div class="cartao vazio">${esc(rotuloMes(chave))} ainda não tem escala.<br>
+      <button class="btn prim" data-acao="gerar">Gerar escala do mês</button></div>`;
+    return;
+  }
+  const cob = coberturaDoMes(chave);
+  alvo.innerHTML = htmlKpis(cob, chave) + htmlAlerta(cob) + htmlGrade(cob, chave) + htmlPaineis(cob, chave);
+}
+
+function pessoasFiltradas() {
+  return empsOrdenados().filter(e => passaFiltro(e.posto, e.turno));
+}
+
+function htmlKpis(cob, chave) {
+  const pessoas = pessoasFiltradas();
+  const est = pessoas.map(e => estatPessoa(e, chave));
+  const comFds = est.filter(s => s.fds >= 1).length;
+  const totalFds = est.reduce((t, s) => t + s.fds, 0);
+  const horas = est.map(s => s.horas);
+  const media = horas.length ? horas.reduce((a, b) => a + b, 0) / horas.length : 0;
+  const regraOk = pessoas.filter(e => cumpreRegra(e.id)).length;
+  const kpi = (rot, val, sub, ruim, extra = '') => `<div class="kpi${ruim ? ' ruim' : ''}">
+    <div class="rot">${rot}</div><div class="val">${val}</div>${extra}<div class="sub">${sub}</div></div>`;
+  const pctBarra = cob.pct === null ? 0 : cob.pct;
+  return `<div class="kpis">
+    ${kpi('Cobertura', fmtPct(cob.pct), `${cob.preenchidas} de ${cob.vagas} vagas mínimas`, cob.pct !== null && cob.pct < 100,
+      `<div class="medidor${cob.pct !== null && cob.pct < 100 ? ' ruim' : ''}"><i style="width:${pctBarra}%"></i></div>`)}
+    ${kpi('Furos de cobertura', cob.furos.length, cob.furos.length ? 'dias/turnos abaixo do mínimo' : 'nenhum dia abaixo do mínimo', cob.furos.length > 0)}
+    ${kpi('Folga no fim de semana', `${comFds}/${pessoas.length}`, `pessoas com ao menos 1 · ${totalFds} dias no total`, comFds < pessoas.length)}
+    ${kpi('Horas por pessoa', `${fmtNum(media, 1)} h`, horas.length ? `média · mín. ${fmtNum(Math.min(...horas), 1)} · máx. ${fmtNum(Math.max(...horas), 1)}` : 'sem pessoas no filtro', false)}
+    ${kpi('Regra 5x2', `${regraOk}/${pessoas.length}`, `2 folgas/semana · até ${MAX_SEGUIDOS} dias seguidos`, regraOk < pessoas.length)}
+  </div>`;
+}
+
+function htmlAlerta(cob) {
+  if (!cob.furos.length) {
+    return `<div class="alerta ok" role="status">✓ Sem furos de cobertura neste mês${
+      estado.filtro.posto !== 'todos' || estado.filtro.turno !== 'todos' ? ' (no filtro atual)' : ''}.</div>`;
+  }
+  const itens = cob.furos.map(f =>
+    `<li><b>${curtaDia(f.data)}</b> · Posto ${f.posto} · ${TURNOS[f.turno]}: ${f.n} de ${f.minimo}</li>`).join('');
+  return `<div class="alerta furo" role="alert">
+    <h2>⚠ ${cob.furos.length} ${cob.furos.length === 1 ? 'furo' : 'furos'} de cobertura abaixo do mínimo</h2>
+    <ul class="furos">${itens}</ul></div>`;
+}
+
+function htmlGrade(cob, chave) {
+  const dias = diasDoMes(chave);
+  const diasComFuro = new Set(cob.furos.map(f => f.data));
+  const cabecalho = dias.map(d => {
+    const classes = [ehFds(d) ? 'fds' : '', d === hojeIso ? 'hoje' : '', diasComFuro.has(d) ? 'comfuro' : ''].join(' ').trim();
+    return `<th class="${classes}" scope="col" title="${esc(curtaDia(d))}${diasComFuro.has(d) ? ' · furo de cobertura' : ''}">${DIAS_LETRA[diaSemana(d)]}<b>${Number(d.slice(8))}</b></th>`;
+  }).join('');
+
+  let corpo = '';
+  POSTOS.forEach(posto => Object.keys(TURNOS).forEach(turno => {
+    if (!passaFiltro(posto, turno)) return;
+    const minimo = minDe(posto, turno);
+    const membros = empsOrdenados().filter(e => e.posto === posto && e.turno === turno);
+    if (!membros.length && !minimo) return;
+    corpo += `<tr class="grupo"><td class="nome">Posto ${posto} · ${TURNOS[turno]}</td><td colspan="${dias.length + 2}"></td></tr>`;
+    membros.forEach(e => {
+      const st = estatPessoa(e, chave);
+      const celulas = dias.map(d => {
+        const s = situacao(e.id, d);
+        if (s === 'F') {
+          const marcada = marcacao && marcacao.id === e.id && marcacao.data === d;
+          return `<td><button type="button" class="dia f${marcada ? ' marcada' : ''}" data-id="${esc(e.id)}" data-data="${d}" title="${esc(e.nome)}: folga em ${curtaDia(d)}. Toque para trocar" aria-label="${esc(e.nome)}, folga em ${curtaDia(d)}">F</button></td>`;
+        }
+        if (s === 'T') return `<td><span class="dia t" title="${esc(e.nome)}: trabalho em ${curtaDia(d)}">T</span></td>`;
+        return `<td><span class="dia n" title="Sem escala">–</span></td>`;
+      }).join('');
+      corpo += `<tr><td class="nome"><strong title="${esc(e.nome)}">${esc(e.nome)}</strong><small>${esc(FUNCOES[e.funcao] || '')}</small></td>${celulas}
+        <td class="tot">${fmtNum(st.horas, 1)} h</td><td class="tot${st.fds < 1 ? ' ruim' : ''}">${st.fds}</td></tr>`;
+    });
+    const contagem = dias.map(d => {
+      const n = contaTrabalhando(d, posto, turno);
+      return n < minimo
+        ? `<td class="furo" title="Furo em ${curtaDia(d)}: ${n} de ${minimo}">${n}</td>`
+        : `<td title="${curtaDia(d)}: ${n} trabalhando (mínimo ${minimo})">${n}</td>`;
+    }).join('');
+    corpo += `<tr class="cob"><td class="nome">Trabalhando (mín. ${minimo})</td>${contagem}<td class="tot"></td><td class="tot"></td></tr>`;
+  }));
+
+  const dicaAtiva = !!marcacao && !!empPorId(marcacao.id);
+  const dica = dicaAtiva
+    ? `Folga de ${esc(empPorId(marcacao.id).nome)} em ${curta(marcacao.data)} selecionada. Toque na folga do outro colaborador. <button type="button" class="btn peq" data-acao="cancelar-marca">Cancelar</button>`
+    : 'Toque em uma folga (F) e depois na folga de outro colaborador para iniciar uma troca.';
+
+  return `<div class="cartao">
+    <div class="legenda">
+      <span class="i"><span class="amostra" style="background:var(--work);color:var(--work-ink)">T</span> Trabalho</span>
+      <span class="i"><span class="amostra" style="background:var(--off);color:var(--off-ink)">F</span> Folga</span>
+      <span class="i"><span class="amostra" style="background:var(--danger);color:#fff">!</span> Abaixo do mínimo</span>
+      <span class="i sem-print">H = horas no mês · FDS = dias de folga em sábado ou domingo</span>
+    </div>
+    <div class="grade-wrap"><table class="grade">
+      <thead><tr><th class="nome" scope="col">Colaborador</th>${cabecalho}<th scope="col" title="Horas no mês">H</th><th scope="col" title="Folgas em sábado ou domingo">FDS</th></tr></thead>
+      <tbody>${corpo}</tbody>
+    </table></div>
+    <p class="dica-troca${dicaAtiva ? ' ativa' : ''}">${dica}</p>
+  </div>`;
+}
+
+function htmlPaineis(cob, chave) {
+  const linhas = cob.porGrupo.map(g => {
+    const ruim = g.pct !== null && g.pct < 100;
+    return `<div class="cob-linha"><span>Posto ${g.posto} · ${TURNOS[g.turno]}</span>
+      <div class="medidor${ruim ? ' ruim' : ''}" title="Mínimo de ${g.minimo} por dia"><i style="width:${g.pct === null ? 0 : g.pct}%"></i></div>
+      <span class="pct${ruim ? ' ruim' : ''}">${ruim ? '⚠ ' : ''}${fmtPct(g.pct)}</span></div>`;
+  }).join('');
+  const pessoas = pessoasFiltradas().map(e => {
+    const s = estatPessoa(e, chave);
+    return `<tr><td>${esc(e.nome)}<div class="sutil">Posto ${e.posto} · ${TURNOS[e.turno]}</div></td>
+      <td class="num">${s.dias}</td><td class="num">${fmtNum(s.horas, 1)} h</td><td class="num">${s.folgas}</td>
+      <td class="num${s.fds < 1 ? ' ruim' : ''}">${s.fds}</td></tr>`;
+  }).join('');
+  return `<div class="duas">
+    <div class="cartao"><h2>Cobertura por posto e turno</h2>${linhas}</div>
+    <div class="cartao"><h2>Horas e folgas por pessoa</h2>
+      <div class="rolagem rolagem-v"><table class="lista">
+        <thead><tr><th>Colaborador</th><th class="num">Dias</th><th class="num">Horas</th><th class="num">Folgas</th><th class="num">No FDS</th></tr></thead>
+        <tbody>${pessoas || '<tr><td colspan="5" class="sutil">Nenhuma pessoa no filtro.</td></tr>'}</tbody>
+      </table></div>
+    </div>
+  </div>`;
+}
+
+function acaoGerar() {
+  const chave = estado.mes;
+  if (!estado.emps.length) { avisar('Cadastre colaboradores antes de gerar a escala.'); return; }
+  const geradaEm = estado.geradas[chave];
+  const temTroca = estado.historico.some(h => h.tipo === 'troca' && h.mes === chave && h.ts >= (geradaEm || 0));
+  if (temTroca && !confirm('Este mês tem trocas de folga registradas. Gerar novamente vai substituí-las. Continuar?')) return;
+  gerarMes(chave);
+  registrarGeracao(chave);
+  marcacao = null;
+  salvar();
+  renderTudo();
+  const furos = coberturaIgnorandoFiltro(chave);
+  avisar(furos ? `Escala gerada com ${furos} furo(s): falta gente para os mínimos configurados.` : 'Escala gerada sem furos de cobertura.');
+}
+function coberturaIgnorandoFiltro(chave) {
+  let n = 0;
+  POSTOS.forEach(p => Object.keys(TURNOS).forEach(t => diasDoMes(chave).forEach(d => {
+    if (contaTrabalhando(d, p, t) < minDe(p, t)) n++;
+  })));
+  return n;
+}
+
+/* ---------- CSV ---------- */
+function celulaCsv(v) {
+  let s = String(v);
+  if (/^[=+\-@\t\r]/.test(s)) s = `'${s}`;   // evita fórmula ao abrir na planilha
+  return /[;"\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+}
+function montarCsv(chave) {
+  const dias = diasDoMes(chave);
+  const linhas = [['Colaborador', 'Função', 'Posto', 'Turno', 'Dado de exemplo',
+    ...dias.map(d => `${curta(d)} ${DIAS_CURTOS[diaSemana(d)]}`), 'Dias trabalhados', 'Horas', 'Folgas', 'Folgas no FDS']];
+  pessoasFiltradas().forEach(e => {
+    const s = estatPessoa(e, chave);
+    linhas.push([e.nome, FUNCOES[e.funcao] || '', `Posto ${e.posto}`, TURNOS[e.turno], e.exemplo ? 'Sim' : 'Não',
+      ...dias.map(d => situacao(e.id, d) || ''), s.dias, fmtNum(s.horas, 1), s.folgas, s.fds]);
+  });
+  return linhas.map(l => l.map(celulaCsv).join(';')).join('\r\n');
+}
+function exportarCsv() {
+  const chave = estado.mes;
+  if (!estado.geradas[chave]) { avisar('Gere a escala do mês antes de exportar.'); return; }
+  const blob = new Blob(['﻿' + montarCsv(chave)], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `escala_${chave}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  avisar('CSV exportado (respeita os filtros de posto e turno).');
+}
+
+/* ---------- Interface: Colaboradores ---------- */
+function renderColaboradores() {
+  const lista = empsOrdenados();
+  $('tituloListaColab').textContent = `Colaboradores (${lista.length})`;
+  const linhas = lista.map(e => `<tr>
+    <td>${esc(e.nome)}${e.exemplo ? ' <span class="tag">exemplo</span>' : ''}</td>
+    <td>${esc(FUNCOES[e.funcao] || '')}</td><td>Posto ${e.posto}</td><td>${TURNOS[e.turno]}</td>
+    <td><div class="acoes-linha">
+      <button type="button" class="btn peq" data-editar="${esc(e.id)}">Editar</button>
+      <button type="button" class="btn peq perigo" data-remover="${esc(e.id)}">Remover</button>
+    </div></td></tr>`).join('');
+  $('tabelaColab').innerHTML = lista.length
+    ? `<thead><tr><th>Nome</th><th>Função</th><th>Posto</th><th>Turno</th><th></th></tr></thead><tbody>${linhas}</tbody>`
+    : '<tbody><tr><td class="sutil">Nenhum colaborador cadastrado.</td></tr></tbody>';
+}
+function limparFormColab() {
+  $('formColab').reset();
+  $('colabId').value = '';
+  $('formColabTitulo').textContent = 'Novo colaborador';
+  $('btnSalvarColab').textContent = 'Adicionar';
+  $('btnCancelarColab').hidden = true;
+}
+function salvarColab(ev) {
+  ev.preventDefault();
+  const nome = $('colabNome').value.trim();
+  if (!nome) { avisar('Informe o nome do colaborador.'); return; }
+  const dados = { nome, funcao: $('colabFuncao').value, posto: Number($('colabPosto').value), turno: $('colabTurno').value };
+  const id = $('colabId').value;
+  if (id) {
+    const e = empPorId(id);
+    if (!e) { limparFormColab(); return; }
+    const mudouEquipe = e.posto !== dados.posto || e.turno !== dados.turno;
+    Object.assign(e, dados);
+    avisar(mudouEquipe ? 'Colaborador atualizado. Gere a escala novamente para reequilibrar as equipes.' : 'Colaborador atualizado.');
+  } else {
+    estado.emps.push({ id: `c${estado.proxId++}`, ...dados, exemplo: false });
+    avisar('Colaborador adicionado. Gere a escala novamente para incluí-lo.');
+  }
+  limparFormColab();
+  salvar();
+  renderTudo();
+}
+function editarColab(id) {
+  const e = empPorId(id);
+  if (!e) return;
+  $('colabId').value = e.id;
+  $('colabNome').value = e.nome;
+  $('colabFuncao').value = e.funcao;
+  $('colabPosto').value = String(e.posto);
+  $('colabTurno').value = e.turno;
+  $('formColabTitulo').textContent = `Editando ${e.nome}`;
+  $('btnSalvarColab').textContent = 'Salvar alterações';
+  $('btnCancelarColab').hidden = false;
+  window.scrollTo(0, 0);
+  $('colabNome').focus();
+}
+function esquecerColab(id) {
+  delete estado.semanas[id];
+  if (marcacao && marcacao.id === id) marcacao = null;
+  if (troca.a === id) { troca.a = ''; troca.x = ''; }
+  if (troca.b === id) { troca.b = ''; troca.y = ''; }
+  if ($('colabId').value === id) limparFormColab();
+}
+function removerColab(id) {
+  const e = empPorId(id);
+  if (!e || !confirm(`Remover ${e.nome} do cadastro e da escala?`)) return;
+  estado.emps = estado.emps.filter(c => c.id !== id);
+  esquecerColab(id);
+  salvar();
+  renderTudo();
+  avisar('Colaborador removido. Confira os alertas de cobertura.');
+}
+function removerExemplos() {
+  if (!confirm('Remover todos os colaboradores de exemplo e as escalas deles?')) return;
+  estado.emps.filter(e => e.exemplo).forEach(e => esquecerColab(e.id));
+  estado.emps = estado.emps.filter(e => !e.exemplo);
+  salvar();
+  renderTudo();
+  avisar('Dados de exemplo removidos.');
+}
+
+/* ---------- Interface: Trocas ---------- */
+const troca = { a: '', x: '', b: '', y: '' };
+
+function folgasNoMes(id, chave) {
+  return diasDoMes(chave).filter(d => situacao(id, d) === 'F');
+}
+function renderTrocas() {
+  const chave = estado.mes;
+  $('trocaMes').textContent = rotuloMes(chave);
+  const comEscala = estado.geradas[chave] ? empsOrdenados().filter(e => estatPessoa(e, chave).folgas > 0) : [];
+  const valido = id => comEscala.some(e => e.id === id);
+  if (!valido(troca.a)) { troca.a = ''; troca.x = ''; }
+  if (!valido(troca.b) || troca.b === troca.a) { troca.b = ''; troca.y = ''; }
+
+  const optsPessoa = excluir => '<option value="">Selecione…</option>' + comEscala.filter(e => e.id !== excluir)
+    .map(e => `<option value="${esc(e.id)}">${esc(e.nome)} · P${e.posto} ${TURNOS[e.turno]}</option>`).join('');
+  $('trocaA').innerHTML = optsPessoa(troca.b);
+  $('trocaB').innerHTML = optsPessoa(troca.a);
+  $('trocaA').value = troca.a;
+  $('trocaB').value = troca.b;
+
+  const folgasA = troca.a ? folgasNoMes(troca.a, chave) : [];
+  if (!folgasA.includes(troca.x)) troca.x = '';
+  $('trocaX').innerHTML = '<option value="">Selecione…</option>' + folgasA.map(d => `<option value="${d}">${curtaDia(d)}</option>`).join('');
+  $('trocaX').value = troca.x;
+  $('trocaX').disabled = !troca.a;
+
+  // Folgas de B na mesma semana aparecem primeiro: são as únicas que preservam o 5x2.
+  let folgasB = troca.b ? folgasNoMes(troca.b, chave) : [];
+  const mesmaSemana = d => troca.x && segundaDe(d) === segundaDe(troca.x);
+  folgasB = [...folgasB.filter(mesmaSemana), ...folgasB.filter(d => !mesmaSemana(d))];
+  if (!folgasB.includes(troca.y)) troca.y = '';
+  if (!troca.y && troca.x) {
+    const sugerida = folgasB.find(d => mesmaSemana(d) && d !== troca.x && situacao(troca.a, d) === 'T' && situacao(troca.b, troca.x) === 'T');
+    if (sugerida) troca.y = sugerida;
+  }
+  $('trocaY').innerHTML = '<option value="">Selecione…</option>' + folgasB
+    .map(d => `<option value="${d}">${curtaDia(d)}${mesmaSemana(d) ? ' · mesma semana' : ''}</option>`).join('');
+  $('trocaY').value = troca.y;
+  $('trocaY').disabled = !troca.b;
+
+  const resultado = troca.a && troca.b && troca.x && troca.y
+    ? validarTroca(troca.a, troca.x, troca.b, troca.y)
+    : { itens: [], pode: false };
+  const simbolo = { ok: '✓', erro: '✕', aviso: '⚠' };
+  $('trocaChecagens').innerHTML = resultado.itens.length
+    ? resultado.itens.map(i => `<li class="${i.tipo}">${simbolo[i.tipo]} ${esc(i.msg)}</li>`).join('')
+    : (comEscala.length ? '' : '<li class="aviso">⚠ Gere a escala deste mês para poder trocar folgas.</li>');
+  $('btnConfirmarTroca').disabled = !resultado.pode;
+
+  renderHistorico();
+}
+function renderHistorico() {
+  if (!estado.historico.length) {
+    $('historico').innerHTML = '<p class="sutil">Nenhum registro ainda.</p>';
+    return;
+  }
+  const linhas = estado.historico.map(h => {
+    const desc = h.tipo === 'troca'
+      ? `<strong>Troca</strong>: ${esc(h.nomeA)} passou de ${curtaDia(h.x)} para ${curtaDia(h.y)}; ${esc(h.nomeB)} passou de ${curtaDia(h.y)} para ${curtaDia(h.x)}.`
+      : `<strong>Escala gerada</strong> para ${esc(rotuloMes(h.mes))}.`;
+    return `<tr><td style="white-space:nowrap">${dataHora(h.ts)}</td><td>${desc}</td></tr>`;
+  }).join('');
+  $('historico').innerHTML = `<table class="lista"><thead><tr><th>Quando</th><th>Registro</th></tr></thead><tbody>${linhas}</tbody></table>`;
+}
+function confirmarTroca() {
+  const { a, x, b, y } = troca;
+  const v = validarTroca(a, x, b, y);
+  if (!v.pode) { avisar('A troca não passa nas validações.'); return; }
+  aplicarTroca(a, x, b, y);
+  estado.historico.unshift({ ts: Date.now(), tipo: 'troca', mes: estado.mes, nomeA: empPorId(a).nome, nomeB: empPorId(b).nome, x, y });
+  estado.historico = estado.historico.slice(0, 300);
+  troca.a = troca.b = troca.x = troca.y = '';
+  marcacao = null;
+  salvar();
+  renderTudo();
+  avisar('Troca registrada no histórico.');
+}
+function tocarFolga(id, data) {
+  if (!marcacao || marcacao.id === id) {
+    marcacao = marcacao && marcacao.id === id && marcacao.data === data ? null : { id, data };
+    renderEscala();
+    return;
+  }
+  troca.a = marcacao.id; troca.x = marcacao.data;
+  troca.b = id; troca.y = data;
+  marcacao = null;
+  renderEscala();
+  renderTrocas();
+  trocarAba('trocas');
+}
+
+/* ---------- Interface: Ajustes ---------- */
+function renderAjustes() {
+  const cab = Object.values(TURNOS).map(t => `<th>${t}</th>`).join('');
+  const linhas = POSTOS.map(p => `<tr><th>Posto ${p}</th>${Object.keys(TURNOS).map(t =>
+    `<td><input type="number" min="0" max="50" step="1" inputmode="numeric" data-min="${chaveGrupo(p, t)}" value="${minDe(p, t)}" aria-label="Mínimo Posto ${p} ${TURNOS[t]}"></td>`).join('')}</tr>`).join('');
+  $('tabelaMinimos').innerHTML = `<thead><tr><th></th>${cab}</tr></thead><tbody>${linhas}</tbody>`;
+  $('horasDia').value = estado.horasDia;
+}
+
+/* ---------- Geral ---------- */
+function renderTudo() {
+  const nEx = estado.emps.filter(e => e.exemplo).length;
+  $('avisoExemplo').hidden = nEx === 0;
+  $('avisoExemploTexto').textContent = `${nEx} ${nEx === 1 ? 'colaborador fictício' : 'colaboradores fictícios'} para demonstração.`;
+  renderEscala();
+  renderColaboradores();
+  renderTrocas();
+}
+
+function ligarEventos() {
+  document.querySelector('.abas').addEventListener('click', ev => {
+    const b = ev.target.closest('button[data-aba]');
+    if (b) trocarAba(b.dataset.aba);
+  });
+  $('mesAnt').addEventListener('click', () => navegarMes(-1));
+  $('mesProx').addEventListener('click', () => navegarMes(1));
+  $('btnGerar').addEventListener('click', acaoGerar);
+  $('btnCsv').addEventListener('click', exportarCsv);
+  $('btnImprimir').addEventListener('click', () => {
+    if (!estado.geradas[estado.mes]) { avisar('Gere a escala do mês antes de imprimir.'); return; }
+    window.print();
+  });
+  $('filtroPosto').addEventListener('change', ev => { estado.filtro.posto = ev.target.value; salvar(); renderEscala(); });
+  $('filtroTurno').addEventListener('change', ev => { estado.filtro.turno = ev.target.value; salvar(); renderEscala(); });
+  $('conteudoEscala').addEventListener('click', ev => {
+    const folga = ev.target.closest('button.dia.f');
+    if (folga) { tocarFolga(folga.dataset.id, folga.dataset.data); return; }
+    const acao = ev.target.closest('[data-acao]');
+    if (acao && acao.dataset.acao === 'gerar') acaoGerar();
+    if (acao && acao.dataset.acao === 'cancelar-marca') { marcacao = null; renderEscala(); }
+    const ir = ev.target.closest('[data-ir]');
+    if (ir) trocarAba(ir.dataset.ir);
+  });
+
+  $('formColab').addEventListener('submit', salvarColab);
+  $('btnCancelarColab').addEventListener('click', limparFormColab);
+  $('tabelaColab').addEventListener('click', ev => {
+    const ed = ev.target.closest('[data-editar]');
+    if (ed) editarColab(ed.dataset.editar);
+    const rm = ev.target.closest('[data-remover]');
+    if (rm) removerColab(rm.dataset.remover);
+  });
+  $('btnRemoverExemplos').addEventListener('click', removerExemplos);
+
+  [['trocaA', 'a'], ['trocaX', 'x'], ['trocaB', 'b'], ['trocaY', 'y']].forEach(([id, campo]) => {
+    $(id).addEventListener('change', ev => {
+      troca[campo] = ev.target.value;
+      if (campo === 'a') troca.x = '';
+      if (campo === 'b' || campo === 'a' || campo === 'x') troca.y = '';
+      renderTrocas();
+    });
+  });
+  $('btnConfirmarTroca').addEventListener('click', confirmarTroca);
+  $('btnLimparTroca').addEventListener('click', () => {
+    troca.a = troca.b = troca.x = troca.y = '';
+    renderTrocas();
+  });
+
+  $('tabelaMinimos').addEventListener('change', ev => {
+    const k = ev.target.dataset.min;
+    if (!k) return;
+    const v = Math.min(50, Math.max(0, Math.floor(Number(ev.target.value)) || 0));
+    ev.target.value = v;
+    estado.min[k] = v;
+    salvar();
+    renderEscala();
+    renderTrocas();
+  });
+  $('horasDia').addEventListener('change', ev => {
+    const v = Number(ev.target.value);
+    if (!(v >= 1 && v <= 12)) { ev.target.value = estado.horasDia; avisar('Informe entre 1 e 12 horas.'); return; }
+    estado.horasDia = v;
+    salvar();
+    renderEscala();
+  });
+  $('btnRestaurar').addEventListener('click', () => {
+    if (!confirm('Apagar colaboradores, escalas e histórico e voltar aos dados de exemplo?')) return;
+    try { localStorage.removeItem(CHAVE); } catch (e) { /* segue com o estado em memória */ }
+    troca.a = troca.b = troca.x = troca.y = '';
+    marcacao = null;
+    carregar();
+    limparFormColab();
+    renderAjustes();
+    renderTudo();
+    trocarAba('escala');
+    avisar('Dados de exemplo restaurados.');
+  });
+}
+function navegarMes(delta) {
+  estado.mes = mudaMes(estado.mes, delta);
+  troca.a = troca.b = troca.x = troca.y = '';
+  marcacao = null;
+  salvar();
+  renderEscala();
+  renderTrocas();
+}
+
+carregar();
+ligarEventos();
+renderAjustes();
+renderTudo();
+</script>
+</body>
+</html>
