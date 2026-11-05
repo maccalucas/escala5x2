@@ -612,6 +612,7 @@
         <li><b>Domingo de folga</b> ao menos a cada N semanas (acima), mais pelo menos 1 folga em sábado ou domingo por mês.</li>
         <li><b>Jornada semanal</b> = horas por dia × 5. Alerta quando passa de 42 h (teto a partir de 16/12/2026) ou de 40 h (teto um ano depois).</li>
         <li><b>Cobertura mínima</b> por posto e turno todos os dias; ausência (falta, atestado, férias) abre furo até alguém cobrir.</li>
+        <li><b>Turno fixo por pessoa.</b> Troca de folga só entre pessoas do mesmo posto e turno; ninguém muda de turno por troca.</li>
         <li>Quando o mês vizinho já tem escala, a semana compartilhada é mantida para não quebrar a sequência.</li>
         <li>Intervalo entre jornadas (11 h), hora extra e banco de horas seguem a CLT e a CCT: <b>a validar com o contador</b> antes do piloto.</li>
       </ul>
@@ -1144,7 +1145,7 @@ function validarTroca(idA, x, idB, y) {
   else add('ok', 'Não cria furo de cobertura.');
 
   if (a.funcao !== b.funcao) add('aviso', `Atenção: funções diferentes (${FUNCOES[a.funcao]} e ${FUNCOES[b.funcao]}).`);
-  if (a.posto !== b.posto || a.turno !== b.turno) add('aviso', 'Atenção: posto ou turno diferentes; os dias mudam de equipe.');
+  if (a.posto !== b.posto || a.turno !== b.turno) add('erro', 'Troca só entre pessoas do mesmo posto e turno: ninguém muda de turno por troca (regra da Rede Inicial, interjornada de 11 h).');
 
   return { itens, pode: !itens.some(i => i.tipo === 'erro') };
 }
