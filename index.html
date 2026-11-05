@@ -3,27 +3,35 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#14324f">
-<title>Escala 5x2 · Rede de Postos (protótipo)</title>
+<meta name="theme-color" content="#0D1B2A">
+<title>Escala 5x2 · Rede Inicial (protótipo)</title>
 <link rel="icon" href="data:,">
 <style>
   :root {
     color-scheme: light;
     --bg: #f3f5f8;
     --surface: #ffffff;
-    --ink: #1b2733;
-    --muted: #5d6b7a;
+    --ink: #0D1B2A;
+    --muted: #475569;
     --line: #dfe4ea;
-    --brand: #14324f;
-    --accent: #1766a8;
-    --accent-soft: #e6f0f9;
-    --work: #d9e8f6;
-    --work-ink: #1d4568;
+    --navy: #0D1B2A;
+    --navy-2: #12243A;
+    --blue: #1A56DB;
+    --blue-deep: #1545b0;
+    --cyan: #06B6D4;
+    --cyan-700: #0E7490;
+    --accent-soft: #e8f0fd;
+    --work: #dde7f7;
+    --work-ink: #1e3a8a;
     --off: #fbd46d;
     --off-ink: #5f4100;
+    --aus: #f3c4c4;
+    --aus-ink: #7f1d1d;
+    --cob: #bfe8d6;
+    --cob-ink: #14532d;
     --danger: #c81e1e;
     --danger-soft: #fdecec;
-    --ok: #17703f;
+    --ok: #15803D;
     --ok-soft: #e7f5ed;
     --warn: #8a5a00;
     --warn-soft: #fff6e0;
@@ -38,21 +46,36 @@
     font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   }
   h1, h2, h3, p { margin: 0; }
-  button, input, select { font: inherit; color: inherit; }
+  button, input, select, textarea { font: inherit; color: inherit; }
   [hidden] { display: none !important; }
 
   /* Cabeçalho e abas */
-  .topo { background: var(--brand); color: #fff; }
-  .topo-in { max-width: 1320px; margin: 0 auto; padding: 16px 16px 0; }
-  .topo h1 { font-size: 20px; font-weight: 650; letter-spacing: -.01em; }
-  .topo p { color: #bcd0e3; font-size: 13px; margin-top: 2px; }
+  .topo { background: linear-gradient(135deg, var(--navy) 0%, var(--navy-2) 100%); color: #fff; position: relative; overflow: hidden; }
+  .topo::before { content: ""; position: absolute; right: -120px; top: -160px; width: 420px; height: 420px; border-radius: 50%;
+    background: radial-gradient(closest-side, rgba(26,86,219,.45), transparent); pointer-events: none; }
+  .topo-in { max-width: 1320px; margin: 0 auto; padding: 16px 16px 0; position: relative; }
+  .topo-linha { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: flex-start; justify-content: space-between; }
+  .topo h1 { font-size: 21px; font-weight: 700; letter-spacing: -.01em; }
+  .topo h1 em { font-style: normal; color: var(--cyan); }
+  .topo p { color: #94A3B8; font-size: 13px; margin-top: 3px; }
+  .topo .marca { display: flex; align-items: center; gap: 8px; color: #94A3B8; font-size: 12px; white-space: nowrap; }
+  .mono { width: 30px; height: 30px; border-radius: 7px; background: var(--navy-2); border: 1px solid rgba(255,255,255,.12);
+    display: grid; place-items: center; position: relative; font-weight: 800; color: #fff; font-size: 16px; }
+  .mono::after { content: ""; position: absolute; left: 7px; right: 7px; bottom: 4px; height: 2px; border-radius: 2px;
+    background: linear-gradient(90deg, var(--cyan), #22C55E); }
+  .prazo {
+    display: inline-block; margin-top: 10px; background: rgba(255,255,255,.07); line-height: 1.4;
+    border: 1px solid rgba(255,255,255,.14); border-radius: 14px; padding: 5px 12px; font-size: 13px; color: #e2e8f0;
+  }
+  .prazo b { color: var(--cyan); font-variant-numeric: tabular-nums; }
   .abas { display: flex; gap: 2px; margin-top: 12px; overflow-x: auto; scrollbar-width: none; }
   .abas button {
-    flex: none; background: none; border: 0; color: #cfdeec; cursor: pointer;
+    flex: none; background: none; border: 0; color: #cbd5e1; cursor: pointer;
     padding: 10px 14px; border-radius: 8px 8px 0 0; font-weight: 550; min-height: 42px;
   }
   .abas button:hover { color: #fff; background: rgba(255,255,255,.08); }
-  .abas button[aria-selected="true"] { background: var(--bg); color: var(--brand); }
+  .abas button[aria-selected="true"] { background: var(--bg); color: var(--navy); font-weight: 650; }
+  .abas button .cont { display: inline-block; min-width: 18px; padding: 0 5px; margin-left: 5px; border-radius: 99px; font-size: 11px; background: var(--danger); color: #fff; text-align: center; }
   main { max-width: 1320px; margin: 0 auto; padding: 16px; }
   .aba { display: none; }
   .aba.ativa { display: block; }
@@ -70,22 +93,28 @@
     padding: 8px 12px; min-height: 40px; cursor: pointer; font-weight: 550; white-space: nowrap;
   }
   .btn:hover { background: #f4f6f9; }
-  .btn.prim { background: var(--accent); border-color: var(--accent); color: #fff; }
-  .btn.prim:hover { background: #125488; }
+  .btn.prim { background: var(--blue); border-color: var(--blue); color: #fff; }
+  .btn.prim:hover { background: var(--blue-deep); }
   .btn.perigo { color: var(--danger); border-color: #e6b5b5; }
   .btn.perigo:hover { background: var(--danger-soft); }
   .btn:disabled { opacity: .5; cursor: not-allowed; }
   .btn.peq { min-height: 32px; padding: 4px 10px; font-size: 13px; }
-  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .btn.zap { color: var(--ok); border-color: #b6dfc6; }
+  .btn.zap:hover { background: var(--ok-soft); }
+  :focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
   label.campo { display: flex; flex-direction: column; gap: 4px; font-size: 13px; font-weight: 550; color: var(--muted); }
-  input[type=text], input[type=number], select {
+  input[type=text], input[type=number], input[type=date], input[type=tel], select, textarea {
     background: #fff; border: 1px solid #c6ced7; border-radius: 8px; padding: 8px 10px;
     min-height: 40px; width: 100%; font-size: 15px; font-weight: 400; color: var(--ink);
   }
+  textarea { min-height: 120px; resize: vertical; font-family: inherit; line-height: 1.4; }
   .tag {
     display: inline-block; font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 99px;
     background: var(--warn-soft); color: var(--warn); border: 1px solid #efd9a3; vertical-align: 1px;
   }
+  .tag.ok { background: var(--ok-soft); color: var(--ok); border-color: #b6dfc6; }
+  .tag.ruim { background: var(--danger-soft); color: var(--danger); border-color: #eeb4b4; }
+  .tag.info { background: var(--accent-soft); color: var(--blue-deep); border-color: #c3d4f5; }
 
   .aviso-exemplo {
     display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; justify-content: space-between;
@@ -93,7 +122,7 @@
     padding: 8px 12px; margin-bottom: 16px; font-size: 13.5px;
   }
   .aviso-info {
-    background: var(--accent-soft); border: 1px solid #c3dbf0; color: #17466f; border-radius: var(--radius);
+    background: var(--accent-soft); border: 1px solid #c3d4f5; color: #1e3a8a; border-radius: var(--radius);
     padding: 8px 12px; margin-bottom: 16px; font-size: 13.5px;
   }
 
@@ -102,19 +131,20 @@
   .mes-nav { display: flex; align-items: center; gap: 4px; }
   .mes-nav strong { min-width: 158px; text-align: center; font-size: 16px; font-weight: 650; }
   .mes-nav .btn { width: 40px; padding: 0; }
-  .ferramentas .filtro { width: 132px; }
+  .ferramentas .filtro { width: 190px; }
   .ferramentas .espaco { flex: 1 1 auto; }
 
   /* Indicadores */
-  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(176px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(168px, 1fr)); gap: 12px; margin-bottom: 16px; }
   .kpi { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; }
   .kpi .rot { font-size: 12.5px; color: var(--muted); font-weight: 550; }
   .kpi .val { font-size: 27px; font-weight: 680; letter-spacing: -.02em; line-height: 1.25; font-variant-numeric: tabular-nums; }
   .kpi .sub { font-size: 12.5px; color: var(--muted); }
   .kpi.ruim { border-color: #eeb4b4; background: var(--danger-soft); }
   .kpi.ruim .val { color: var(--danger); }
+  .kpi.bom .val { color: var(--ok); }
   .medidor { height: 8px; border-radius: 4px; background: #e7ebf0; overflow: hidden; }
-  .medidor i { display: block; height: 100%; border-radius: 4px; background: var(--accent); }
+  .medidor i { display: block; height: 100%; border-radius: 4px; background: var(--blue); }
   .medidor.ruim i { background: var(--danger); }
   .kpi .medidor { margin: 6px 0 4px; }
 
@@ -123,6 +153,7 @@
   .alerta.furo { background: var(--danger-soft); border-color: #eeb4b4; }
   .alerta.furo h2 { color: var(--danger); font-size: 15px; font-weight: 680; }
   .alerta.ok { background: var(--ok-soft); border-color: #b6dfc6; color: var(--ok); font-weight: 600; font-size: 14px; }
+  .alerta.atencao { background: var(--warn-soft); border-color: #efd9a3; color: #6a4600; font-size: 13.5px; }
   .furos { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; max-height: 148px; overflow-y: auto; }
   .furos li {
     background: #fff; border: 1px solid #eeb4b4; border-radius: 6px; padding: 3px 8px;
@@ -143,7 +174,7 @@
   }
   .grade thead th b { display: block; font-size: 12.5px; color: var(--ink); font-weight: 650; }
   .grade thead th.fds { background: #eef1f5; }
-  .grade thead th.hoje b { color: #fff; background: var(--accent); border-radius: 4px; margin: 0 3px; }
+  .grade thead th.hoje b { color: #fff; background: var(--blue); border-radius: 4px; margin: 0 3px; }
   .grade thead th.comfuro { background: var(--danger); color: #fff; }
   .grade thead th.comfuro b { color: #fff; }
   .grade .nome {
@@ -155,14 +186,19 @@
   .grade .nome small { color: var(--muted); font-size: 11px; display: block; line-height: 1.15; }
   .grade tr.grupo td { background: #eef1f5; font-weight: 650; font-size: 12.5px; text-align: left; padding: 5px 8px; border-top: 1px solid var(--line); }
   .grade tr.grupo td.nome { background: #eef1f5; white-space: nowrap; }
+  .grade tr.grupo td small { color: var(--muted); font-weight: 500; }
   .grade .dia {
     display: flex; align-items: center; justify-content: center; width: 100%; min-width: 26px; height: 28px;
     border: 0; border-radius: 4px; padding: 0; font-size: 11.5px; font-weight: 600;
   }
-  .grade .dia.t { background: var(--work); color: var(--work-ink); }
+  .grade .dia.t { background: var(--work); color: var(--work-ink); cursor: pointer; }
+  .grade .dia.t:hover { box-shadow: inset 0 0 0 2px var(--work-ink); }
   .grade .dia.f { background: var(--off); color: var(--off-ink); font-weight: 750; cursor: pointer; }
   .grade .dia.f:hover { box-shadow: inset 0 0 0 2px var(--off-ink); }
-  .grade .dia.f.marcada { background: var(--accent); color: #fff; }
+  .grade .dia.f.marcada { background: var(--blue); color: #fff; }
+  .grade .dia.a { background: var(--aus); color: var(--aus-ink); font-weight: 750; cursor: pointer; }
+  .grade .dia.a:hover { box-shadow: inset 0 0 0 2px var(--aus-ink); }
+  .grade .dia.c { background: var(--cob); color: var(--cob-ink); font-weight: 750; }
   .grade .dia.n { background: #f1f3f5; color: #9aa5b1; }
   .grade .tot { padding: 2px 6px; font-weight: 600; white-space: nowrap; border-left: 1px solid var(--line); min-width: 44px; }
   .grade .tot.ruim { color: var(--danger); }
@@ -170,15 +206,14 @@
   .grade tr.cob td.nome { font-weight: 550; font-size: 11.5px; }
   .grade tr.cob td.furo { background: var(--danger); color: #fff; font-weight: 750; border-radius: 4px; }
   .dica-troca { margin-top: 8px; font-size: 13px; color: var(--muted); }
-  .dica-troca.ativa { color: var(--accent); font-weight: 600; }
+  .dica-troca.ativa { color: var(--blue); font-weight: 600; }
   .vazio { text-align: center; padding: 36px 16px; color: var(--muted); }
   .vazio .btn { margin-top: 12px; }
 
   /* Painéis inferiores */
-  .duas { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; align-items: start; }
+  .duas { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; align-items: start; margin-bottom: 16px; }
   .duas > .cartao { margin-bottom: 0; }
-  .duas { margin-bottom: 16px; }
-  .cob-linha { display: grid; grid-template-columns: 124px 1fr 66px; gap: 10px; align-items: center; padding: 5px 0; font-size: 13px; }
+  .cob-linha { display: grid; grid-template-columns: minmax(150px, 1.2fr) 1fr 66px; gap: 10px; align-items: center; padding: 5px 0; font-size: 13px; }
   .cob-linha .pct { text-align: right; font-weight: 650; font-variant-numeric: tabular-nums; }
   .cob-linha .pct.ruim { color: var(--danger); }
 
@@ -188,14 +223,17 @@
   .lista tr:last-child td { border-bottom: 0; }
   .lista .num { text-align: right; font-variant-numeric: tabular-nums; }
   .lista .ruim { color: var(--danger); font-weight: 650; }
+  .lista .bom { color: var(--ok); font-weight: 650; }
+  .lista tfoot td { font-weight: 700; border-top: 2px solid var(--line); background: #f8fafc; }
   .rolagem { overflow-x: auto; }
   .rolagem-v { max-height: 372px; overflow-y: auto; }
+  .lista input[type=number] { width: 70px; min-height: 32px; padding: 4px 6px; text-align: center; }
 
   /* Formulários */
   .form-linha { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; align-items: end; }
   .form-linha .largo { grid-column: span 2; }
   .acoes { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
-  .acoes-linha { display: flex; gap: 6px; justify-content: flex-end; }
+  .acoes-linha { display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap; }
   .checagens { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 4px; font-size: 13.5px; }
   .checagens li { padding: 5px 10px; border-radius: 6px; }
   .checagens .ok { background: var(--ok-soft); color: var(--ok); }
@@ -206,16 +244,45 @@
   .minimos td { padding: 4px 12px 4px 0; }
   .minimos input { width: 76px; text-align: center; }
 
+  /* Ausências e avisos */
+  .aus-item { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; margin-bottom: 10px; }
+  .aus-item.aberta { border-color: #eeb4b4; background: #fffafa; }
+  .aus-item.coberta { border-color: #b6dfc6; background: #f6fcf8; }
+  .aus-cab { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; justify-content: space-between; }
+  .aus-cab strong { font-size: 14px; }
+  .cands { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 6px; }
+  .cands li { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; justify-content: space-between; font-size: 13.5px; padding: 6px 8px; background: #fff; border: 1px solid var(--line); border-radius: 6px; }
+  .cands li .quem { flex: 1 1 220px; }
+  .cands li .quem small { display: block; color: var(--muted); }
+  .msg { background: #f8fafc; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; white-space: pre-wrap; font-size: 13.5px; line-height: 1.45; margin-top: 8px; }
+  details.zap { border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; margin-bottom: 6px; background: #fff; }
+  details.zap summary { cursor: pointer; font-weight: 550; display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; justify-content: space-between; }
+  details.zap summary small { color: var(--muted); font-weight: 400; }
+  .regras { margin: 0; padding-left: 18px; color: var(--muted); font-size: 13.5px; display: grid; gap: 4px; }
+  .regras b { color: var(--ink); }
+
+  /* Dimensionamento */
+  .dim-resumo { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 16px; }
+  .dim-resumo .kpi .val { font-size: 24px; }
+
+  dialog { border: 0; border-radius: 12px; padding: 0; max-width: min(420px, calc(100vw - 32px)); box-shadow: 0 20px 60px rgba(0,0,0,.3); }
+  dialog::backdrop { background: rgba(13,27,42,.45); }
+  dialog .cartao { margin: 0; border: 0; }
+
   .toast {
-    position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); background: #1b2733; color: #fff;
+    position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); background: var(--navy); color: #fff;
     padding: 10px 16px; border-radius: 8px; font-size: 14px; box-shadow: 0 6px 20px rgba(0,0,0,.25);
     z-index: 50; max-width: calc(100vw - 32px);
   }
   .impressao-titulo { display: none; }
-  footer { max-width: 1320px; margin: 0 auto; padding: 0 16px 24px; color: var(--muted); font-size: 12.5px; }
+  footer { max-width: 1320px; margin: 0 auto; padding: 0 16px 24px; color: var(--muted); font-size: 12.5px; display: flex; flex-wrap: wrap; gap: 6px 16px; justify-content: space-between; }
 
   @media (max-width: 640px) {
-    .topo h1 { font-size: 17px; }
+    .topo h1 { font-size: 18px; }
+    .topo .marca { font-size: 11px; order: -1; width: 100%; }
+    .mono { width: 22px; height: 22px; font-size: 12px; border-radius: 5px; }
+    .mono::after { left: 5px; right: 5px; bottom: 3px; }
+    .prazo { font-size: 12px; }
     main { padding: 12px; }
     .cartao { padding: 12px; }
     .form-linha .largo { grid-column: auto; }
@@ -227,22 +294,23 @@
     .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
     .kpi { padding: 10px 11px; }
     .kpi .val { font-size: 23px; }
-    .kpi:last-child:nth-child(odd) { grid-column: 1 / -1; }
     .abas { gap: 0; }
-    .abas button { padding: 10px 8px; font-size: 13.5px; }
+    .abas button { padding: 10px 9px; font-size: 13px; }
+    .cob-linha { grid-template-columns: 1fr 60px; }
+    .cob-linha .medidor { grid-column: 1 / -1; }
   }
 
   @page { size: A4 landscape; margin: 8mm; }
   @media print {
     body { background: #fff; font-size: 10pt; }
     * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .topo, .ferramentas, .aviso-exemplo, .aviso-info, .dica-troca, footer, .toast, .duas, .sem-print { display: none !important; }
+    .topo, .ferramentas, .aviso-exemplo, .aviso-info, .dica-troca, footer, .toast, .duas, .sem-print, .alerta.atencao { display: none !important; }
     main { max-width: none; padding: 0; }
     .aba { display: none !important; }
     #aba-escala { display: block !important; }
     .impressao-titulo { display: block; margin-bottom: 6px; }
     .impressao-titulo h1 { font-size: 14pt; }
-    .kpis { grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 6px; }
+    .kpis { grid-template-columns: repeat(6, 1fr); gap: 6px; margin-bottom: 6px; }
     .kpi { padding: 4px 8px; break-inside: avoid; }
     .kpi .val { font-size: 14pt; }
     .kpi .medidor, .kpi .sub, .legenda { display: none; }
@@ -273,10 +341,19 @@
 
 <header class="topo">
   <div class="topo-in">
-    <h1>Escala 5x2 · Rede de Postos (protótipo)</h1>
-    <p>Cliente: Renê Abbad · 2 postos de combustível</p>
+    <div class="topo-linha">
+      <div>
+        <h1>Rede Inicial · <em>Escala 5x2</em></h1>
+        <p id="topoSub">Piloto nos 2 postos</p>
+        <div class="prazo" id="prazo"></div>
+      </div>
+      <div class="marca"><span class="mono" aria-hidden="true">M</span><span>Protótipo · Macca Tecnologia</span></div>
+    </div>
     <nav class="abas" role="tablist" aria-label="Seções">
       <button role="tab" data-aba="escala" aria-selected="true">Escala</button>
+      <button role="tab" data-aba="dimensionamento" aria-selected="false">Dimensionamento</button>
+      <button role="tab" data-aba="ausencias" aria-selected="false">Ausências<span class="cont" id="contAus" hidden></span></button>
+      <button role="tab" data-aba="avisos" aria-selected="false">Avisos WhatsApp</button>
       <button role="tab" data-aba="colaboradores" aria-selected="false">Colaboradores</button>
       <button role="tab" data-aba="trocas" aria-selected="false">Trocas de folga</button>
       <button role="tab" data-aba="ajustes" aria-selected="false">Ajustes</button>
@@ -293,7 +370,7 @@
   <!-- ESCALA -->
   <section class="aba ativa" id="aba-escala">
     <div class="impressao-titulo">
-      <h1>Escala 5x2 · Rede de Postos (protótipo)</h1>
+      <h1>Rede Inicial · Escala 5x2</h1>
       <p id="impressaoSub"></p>
     </div>
     <div class="ferramentas">
@@ -304,13 +381,9 @@
       </div>
       <button class="btn prim grande" id="btnGerar">Gerar escala</button>
       <label class="campo filtro">Posto
-        <select id="filtroPosto">
-          <option value="todos">Todos</option>
-          <option value="1">Posto 1</option>
-          <option value="2">Posto 2</option>
-        </select>
+        <select id="filtroPosto"></select>
       </label>
-      <label class="campo filtro">Turno
+      <label class="campo filtro" style="width:132px">Turno
         <select id="filtroTurno">
           <option value="todos">Todos</option>
           <option value="manha">Manhã</option>
@@ -324,6 +397,100 @@
     </div>
     <div id="avisoPendentes" class="aviso-info" hidden></div>
     <div id="conteudoEscala"></div>
+  </section>
+
+  <!-- DIMENSIONAMENTO -->
+  <section class="aba" id="aba-dimensionamento">
+    <div class="cartao">
+      <h2>Quantas pessoas o 5x2 pede</h2>
+      <p class="sutil" style="margin-bottom:10px">Cada posto abre 7 dias. No 6x1, cada pessoa cobre 6 dias por semana; no 5x2, cobre 5. Para manter o mínimo de pessoas por turno todos os dias, o quadro precisa crescer ou as horas viram extra. Edite "Pessoas hoje" para simular o quadro real de cada posto.</p>
+      <div id="dimResumo" class="dim-resumo"></div>
+      <div class="rolagem"><table class="lista" id="tabelaDim"></table></div>
+      <div class="acoes">
+        <button class="btn peq" id="btnDimCadastro">Usar o quadro cadastrado</button>
+      </div>
+    </div>
+    <div class="duas">
+      <div class="cartao">
+        <h2>Custo (opcional)</h2>
+        <div class="form-linha">
+          <label class="campo">Custo mensal por pessoa (R$, com encargos)
+            <input type="number" id="custoPessoa" min="0" step="50" placeholder="ex.: 3500">
+          </label>
+          <label class="campo">Valor da hora extra (R$)
+            <input type="number" id="valorHoraExtra" min="0" step="1" placeholder="ex.: 22">
+          </label>
+        </div>
+        <p class="sutil" style="margin-top:8px">Preencha com os números da Rede Inicial na reunião. Sem esses valores, a tela mostra só pessoas e horas.</p>
+      </div>
+      <div class="cartao">
+        <h2>Jornada e prazos</h2>
+        <ul class="regras" id="listaPrazos"></ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- AUSÊNCIAS -->
+  <section class="aba" id="aba-ausencias">
+    <form class="cartao" id="formAus" autocomplete="off">
+      <h2>Registrar ausência</h2>
+      <p class="sutil" style="margin-bottom:10px">Falta, atestado ou férias. O sistema recalcula a cobertura do dia e sugere quem pode cobrir. Na grade da escala, tocar em um dia de trabalho (T) faz o mesmo.</p>
+      <div class="form-linha">
+        <label class="campo largo">Colaborador
+          <select id="ausColab"></select>
+        </label>
+        <label class="campo">Data
+          <input type="date" id="ausData" required>
+        </label>
+        <label class="campo">Tipo
+          <select id="ausTipo">
+            <option value="falta">Falta</option>
+            <option value="atestado">Atestado</option>
+            <option value="ferias">Férias</option>
+            <option value="outro">Outro</option>
+          </select>
+        </label>
+      </div>
+      <div class="acoes">
+        <button class="btn prim" type="submit">Registrar</button>
+      </div>
+    </form>
+    <div class="cartao">
+      <h2 id="tituloAus">Ausências do mês</h2>
+      <div id="listaAus"></div>
+    </div>
+  </section>
+
+  <!-- AVISOS -->
+  <section class="aba" id="aba-avisos">
+    <div class="aviso-info">Simulação dos avisos. No piloto, cada mensagem sai sozinha pelo WhatsApp oficial (API da Meta) com opt-in do colaborador: escala da semana no domingo, lembrete de folga, pedido de cobertura e resumo diário para o gerente.</div>
+    <div class="cartao">
+      <h2>Escala da semana para cada colaborador</h2>
+      <div class="form-linha" style="max-width:520px">
+        <label class="campo">Semana
+          <select id="avisoSemana"></select>
+        </label>
+        <label class="campo">Posto
+          <select id="avisoPosto"></select>
+        </label>
+      </div>
+      <div id="listaAvisos" style="margin-top:12px"></div>
+    </div>
+    <div class="duas">
+      <div class="cartao">
+        <h2>Resumo do dia para o gerente</h2>
+        <label class="campo" style="max-width:220px">Dia
+          <input type="date" id="avisoDia">
+        </label>
+        <div class="msg" id="msgGestor"></div>
+        <div class="acoes"><button class="btn peq" data-copiar="msgGestor">Copiar</button></div>
+      </div>
+      <div class="cartao">
+        <h2>Alerta de furos do mês</h2>
+        <div class="msg" id="msgFuros"></div>
+        <div class="acoes"><button class="btn peq" data-copiar="msgFuros">Copiar</button></div>
+      </div>
+    </div>
   </section>
 
   <!-- COLABORADORES -->
@@ -344,10 +511,7 @@
           </select>
         </label>
         <label class="campo">Posto
-          <select id="colabPosto">
-            <option value="1">Posto 1</option>
-            <option value="2">Posto 2</option>
-          </select>
+          <select id="colabPosto"></select>
         </label>
         <label class="campo">Turno
           <select id="colabTurno">
@@ -355,6 +519,9 @@
             <option value="tarde">Tarde</option>
             <option value="noite">Noite</option>
           </select>
+        </label>
+        <label class="campo">WhatsApp (opcional)
+          <input type="tel" id="colabFone" maxlength="20" placeholder="16 99999-0000" inputmode="tel">
         </label>
       </div>
       <div class="acoes">
@@ -372,7 +539,7 @@
   <section class="aba" id="aba-trocas">
     <div class="cartao">
       <h2>Trocar folga entre dois colaboradores · <span id="trocaMes"></span></h2>
-      <p class="sutil" style="margin-bottom:12px">Cada um assume o dia de folga do outro. As folgas precisam estar na mesma semana (segunda a domingo) para manter 5 dias trabalhados e 2 folgas.</p>
+      <p class="sutil" style="margin-bottom:12px">Cada um assume o dia de folga do outro. As folgas precisam estar na mesma semana (segunda a domingo) para manter 5 dias trabalhados e 2 folgas. Na grade, tocar em duas folgas (F) também inicia a troca.</p>
       <div class="form-linha">
         <label class="campo">Colaborador A
           <select id="trocaA"></select>
@@ -402,61 +569,115 @@
   <!-- AJUSTES -->
   <section class="aba" id="aba-ajustes">
     <div class="cartao">
+      <h2>Postos do piloto</h2>
+      <div class="form-linha" id="formPostos"></div>
+      <p class="sutil" style="margin-top:8px">Os nomes aparecem na escala, nos avisos e no CSV.</p>
+    </div>
+    <div class="cartao">
       <h2>Cobertura mínima por posto e turno</h2>
       <p class="sutil" style="margin-bottom:10px">Número mínimo de pessoas trabalhando por dia, somando todas as funções. Vale imediatamente para os alertas; gere a escala de novo para o sistema tentar atender aos novos mínimos.</p>
       <div class="rolagem"><table class="minimos" id="tabelaMinimos"></table></div>
     </div>
-    <div class="cartao">
-      <h2>Jornada</h2>
-      <label class="campo" style="max-width:220px">Horas por dia trabalhado
-        <input type="number" id="horasDia" min="1" max="12" step="0.5">
-      </label>
-      <p class="sutil" style="margin-top:6px">Usado no cálculo de horas por pessoa. Com 8 h por dia, a semana de 5 dias soma 40 h.</p>
+    <div class="duas">
+      <div class="cartao">
+        <h2>Jornada</h2>
+        <label class="campo" style="max-width:220px">Horas por dia trabalhado
+          <input type="number" id="horasDia" min="1" max="12" step="0.5">
+        </label>
+        <p class="sutil" id="horasInfo" style="margin-top:6px"></p>
+      </div>
+      <div class="cartao">
+        <h2>Folga no domingo</h2>
+        <label class="campo" style="max-width:300px">Cada pessoa folga em um domingo pelo menos a cada
+          <select id="domingoCada">
+            <option value="0">desligado</option>
+            <option value="2">2 semanas</option>
+            <option value="3">3 semanas</option>
+            <option value="4">4 semanas</option>
+          </select>
+        </label>
+        <p class="sutil" style="margin-top:6px">A EC 141 diz que uma das 2 folgas semanais é "de preferência" no domingo; para o comércio, a Lei 10.101/2000 pede domingo ao menos a cada 3 semanas. Validar com o contador e a CCT dos frentistas.</p>
+        <p class="sutil" style="margin-top:6px"><b>Trade-off:</b> com a equipe no mínimo, voltar ao domingo sem passar de 6 dias seguidos obriga folgas separadas em parte das semanas (a folga só "anda" um dia por semana). Desligada, as folgas saem sempre juntas e o domingo roda naturalmente. Gere a escala de novo após mudar.</p>
+      </div>
     </div>
     <div class="cartao">
-      <h2>Regras usadas na geração e nas trocas</h2>
-      <ul class="sutil" style="margin:0;padding-left:18px">
-        <li>Exatamente 2 folgas em cada semana (segunda a domingo), em dias seguidos sempre que possível.</li>
-        <li>No máximo 6 dias trabalhados seguidos, inclusive na virada de semana e de mês.</li>
-        <li>Pelo menos 1 folga no mês caindo em sábado ou domingo, por pessoa.</li>
+      <h2>Horário dos turnos</h2>
+      <div class="form-linha" id="formTurnos"></div>
+    </div>
+    <div class="cartao">
+      <h2>Regras usadas na geração, nas trocas e nos alertas</h2>
+      <ul class="regras">
+        <li><b>2 folgas por semana</b> (segunda a domingo), em dias seguidos sempre que possível. EC 141/2026: dois dias de descanso semanal remunerado.</li>
+        <li><b>No máximo 6 dias seguidos</b> de trabalho, inclusive na virada de semana e de mês.</li>
+        <li><b>Domingo de folga</b> ao menos a cada N semanas (acima), mais pelo menos 1 folga em sábado ou domingo por mês.</li>
+        <li><b>Jornada semanal</b> = horas por dia × 5. Alerta quando passa de 42 h (teto a partir de 16/12/2026) ou de 40 h (teto um ano depois).</li>
+        <li><b>Cobertura mínima</b> por posto e turno todos os dias; ausência (falta, atestado, férias) abre furo até alguém cobrir.</li>
         <li>Quando o mês vizinho já tem escala, a semana compartilhada é mantida para não quebrar a sequência.</li>
+        <li>Intervalo entre jornadas (11 h), hora extra e banco de horas seguem a CLT e a CCT: <b>a validar com o contador</b> antes do piloto.</li>
       </ul>
     </div>
     <div class="cartao">
       <h2>Dados</h2>
-      <p class="sutil" style="margin-bottom:10px">Tudo fica salvo apenas neste navegador.</p>
+      <p class="sutil" style="margin-bottom:10px">Tudo fica salvo apenas neste navegador. No piloto, os dados vivem num banco com acesso por posto e integração com o ponto do LBC (CSV).</p>
       <button class="btn perigo" id="btnRestaurar">Apagar tudo e restaurar exemplos</button>
     </div>
   </section>
 </main>
 
-<footer>Protótipo para validação. Os dados ficam neste aparelho e funcionam sem internet.</footer>
+<footer>
+  <span>Protótipo para validação com a Rede Inicial. Dados fictícios; ficam neste aparelho e funcionam sem internet.</span>
+  <span>Macca Tecnologia · macca.ia.br</span>
+</footer>
 <div class="toast" id="toast" role="status" hidden></div>
+
+<dialog id="dlgAus">
+  <form class="cartao" method="dialog" id="formDlgAus">
+    <h2 id="dlgAusTitulo">Registrar ausência</h2>
+    <p class="sutil" id="dlgAusTexto" style="margin-bottom:10px"></p>
+    <label class="campo">Tipo
+      <select id="dlgAusTipo">
+        <option value="falta">Falta</option>
+        <option value="atestado">Atestado</option>
+        <option value="ferias">Férias</option>
+        <option value="outro">Outro</option>
+      </select>
+    </label>
+    <div class="acoes">
+      <button class="btn prim" value="ok">Registrar</button>
+      <button class="btn" value="cancelar">Cancelar</button>
+    </div>
+  </form>
+</dialog>
 
 <script>
 'use strict';
 
 /* ---------- Constantes ---------- */
-const CHAVE = 'escala5x2.rede.v1';
+const CHAVE = 'escala5x2.redeinicial.v2';
 const POSTOS = [1, 2];
 const TURNOS = { manha: 'Manhã', tarde: 'Tarde', noite: 'Noite' };
 const FUNCOES = { frentista: 'Frentista', caixa: 'Caixa', gerente: 'Gerente', conveniencia: 'Conveniência' };
+const TIPOS_AUS = { falta: 'Falta', atestado: 'Atestado', ferias: 'Férias', outro: 'Outro' };
 const MESES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 const DIAS_CURTOS = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
 const DIAS_LETRA = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
 const MAX_SEGUIDOS = 6;
 const TENTATIVAS = 400;
+const LIMITE_42 = '2026-12-16';   // EC 141/2026: 42 h/semana 2 meses após 16/10/2026
+const LIMITE_40 = '2027-12-16';   // 40 h/semana um ano depois (data aproximada)
 // Todos os pares de folga possíveis na semana (0 = segunda ... 6 = domingo).
 const PARES = [];
 for (let i = 0; i < 6; i++) for (let j = i + 1; j < 7; j++) PARES.push([i, j]);
 
 const EXEMPLOS = [
-  ['Carlos Mendes', 1, 'manha'], ['Juliana Prado', 1, 'manha'], ['Rafael Teixeira', 1, 'manha'],
-  ['Marcos Vieira', 1, 'tarde'], ['Patrícia Lima', 1, 'tarde'],
-  ['Anderson Rocha', 1, 'noite'], ['Sidnei Barros', 1, 'noite'],
-  ['Fernanda Dias', 2, 'manha'], ['Paulo Nogueira', 2, 'manha'], ['Thiago Freitas', 2, 'manha'],
-  ['Luciana Campos', 2, 'tarde'], ['Bruno Sales', 2, 'tarde'],
-  ['Edson Moraes', 2, 'noite'], ['Vanessa Pires', 2, 'noite']
+  ['Carlos Mendes', 1, 'manha', 'frentista'], ['Juliana Prado', 1, 'manha', 'frentista'], ['Rafael Teixeira', 1, 'manha', 'frentista'],
+  ['Débora Antunes', 1, 'manha', 'caixa'], ['Henrique Lopes', 1, 'manha', 'frentista'],
+  ['Marcos Vieira', 1, 'tarde', 'frentista'], ['Patrícia Lima', 1, 'tarde', 'frentista'], ['Caio Ribeiro', 1, 'tarde', 'frentista'],
+  ['Anderson Rocha', 1, 'noite', 'frentista'], ['Sidnei Barros', 1, 'noite', 'frentista'],
+  ['Fernanda Dias', 2, 'manha', 'frentista'], ['Paulo Nogueira', 2, 'manha', 'frentista'], ['Thiago Freitas', 2, 'manha', 'frentista'],
+  ['Simone Castro', 2, 'manha', 'caixa'], ['Gustavo Pires', 2, 'manha', 'frentista'],
+  ['Luciana Campos', 2, 'tarde', 'frentista'], ['Bruno Sales', 2, 'tarde', 'frentista'], ['Renata Moura', 2, 'tarde', 'frentista'],
+  ['Edson Moraes', 2, 'noite', 'frentista'], ['Vanessa Pires', 2, 'noite', 'frentista']
 ];
 
 /* ---------- Datas (sempre strings AAAA-MM-DD, sem fuso) ---------- */
@@ -468,18 +689,26 @@ const diaSemana = s => paraData(s).getDay();
 const segundaDe = s => somaDias(s, -((diaSemana(s) + 6) % 7));
 const mesDe = s => s.slice(0, 7);
 const ehFds = s => { const d = diaSemana(s); return d === 0 || d === 6; };
+const ehDomingo = s => diaSemana(s) === 0;
 const difDias = (a, b) => {
   const [x, y] = [a, b].map(s => { const [an, m, d] = s.split('-').map(Number); return Date.UTC(an, m - 1, d); });
   return Math.round((x - y) / 86400000);
 };
 const curta = s => `${s.slice(8, 10)}/${s.slice(5, 7)}`;
 const curtaDia = s => `${DIAS_CURTOS[diaSemana(s)]} ${curta(s)}`;
+const longa = s => `${s.slice(8, 10)}/${s.slice(5, 7)}/${s.slice(0, 4)}`;
 const hojeIso = paraIso(new Date());
 
 function diasDoMes(chave) {
   const [a, m] = chave.split('-').map(Number);
   const total = new Date(a, m, 0).getDate();
   return Array.from({ length: total }, (_, i) => `${chave}-${pad(i + 1)}`);
+}
+function segundasDoMes(chave) {
+  const dias = diasDoMes(chave);
+  const segundas = [];
+  for (let s = segundaDe(dias[0]); s <= dias[dias.length - 1]; s = somaDias(s, 7)) segundas.push(s);
+  return segundas;
 }
 function mudaMes(chave, delta) {
   const [a, m] = chave.split('-').map(Number);
@@ -491,14 +720,22 @@ const rotuloMes = chave => `${MESES[Number(chave.slice(5, 7)) - 1]} de ${chave.s
 /* ---------- Estado ---------- */
 function estadoInicial() {
   const min = {};
-  POSTOS.forEach(p => { min[`${p}-manha`] = 2; min[`${p}-tarde`] = 1; min[`${p}-noite`] = 1; });
+  POSTOS.forEach(p => { min[`${p}-manha`] = 3; min[`${p}-tarde`] = 2; min[`${p}-noite`] = 1; });
   return {
-    emps: EXEMPLOS.map(([nome, posto, turno], i) => ({ id: `c${i + 1}`, nome, funcao: 'frentista', posto, turno, exemplo: true })),
+    emps: EXEMPLOS.map(([nome, posto, turno, funcao], i) => ({ id: `c${i + 1}`, nome, funcao, posto, turno, fone: '', exemplo: true })),
     proxId: EXEMPLOS.length + 1,
+    postos: { 1: 'Posto Inicial · Jardinópolis', 2: 'Posto Educandário · Ribeirão Preto' },
+    turnosHorario: { manha: '06h às 14h', tarde: '14h às 22h', noite: '22h às 06h' },
     min,
     horasDia: 8,
-    semanas: {},   // { idColab: { segundaIso: [folga1, folga2] } }
-    geradas: {},   // { 'AAAA-MM': timestamp }
+    domingoCadaSemanas: 0,
+    custoPessoa: '',
+    valorHoraExtra: '',
+    simulacao: {},  // { '1-manha': pessoas hoje } (vazio = usa o cadastro)
+    semanas: {},    // { idColab: { segundaIso: [folga1, folga2] } }
+    ausencias: {},  // { idColab: { 'AAAA-MM-DD': tipo } }
+    coberturas: {}, // { 'AAAA-MM-DD|idAusente': idSubstituto }
+    geradas: {},    // { 'AAAA-MM': timestamp }
     historico: [],
     mes: mesDe(hojeIso),
     filtro: { posto: 'todos', turno: 'todos' },
@@ -532,6 +769,10 @@ const empPorId = id => estado.emps.find(e => e.id === id);
 const chaveGrupo = (posto, turno) => `${posto}-${turno}`;
 const minDe = (posto, turno) => Number(estado.min[chaveGrupo(posto, turno)]) || 0;
 const ordemTurno = t => Object.keys(TURNOS).indexOf(t);
+const nomePosto = p => (estado.postos[p] || `Posto ${p}`).trim() || `Posto ${p}`;
+const nomePostoCurto = p => nomePosto(p).split(' · ')[0];
+const horarioTurno = t => (estado.turnosHorario[t] || '').trim();
+const rotuloGrupo = (p, t) => `${nomePostoCurto(p)} · ${TURNOS[t]}`;
 function empsOrdenados() {
   return estado.emps.slice().sort((a, b) =>
     a.posto - b.posto || ordemTurno(a.turno) - ordemTurno(b.turno) || a.nome.localeCompare(b.nome, 'pt-BR'));
@@ -540,14 +781,54 @@ const passaFiltro = (posto, turno) =>
   (estado.filtro.posto === 'todos' || Number(estado.filtro.posto) === posto) &&
   (estado.filtro.turno === 'todos' || estado.filtro.turno === turno);
 
-/* 'F' folga, 'T' trabalho, null sem escala */
+/* ---------- Ausências e coberturas ---------- */
+const ausenciaDe = (id, data) => (estado.ausencias[id] || {})[data] || null;
+function coberturaDe(id, data) { return estado.coberturas[`${data}|${id}`] || null; }
+function cobrindoEm(id, data) {
+  return Object.keys(estado.coberturas).some(k => k.startsWith(`${data}|`) && estado.coberturas[k] === id);
+}
+function ausenteCoberto(id, data) {
+  const k = `${data}|${id}`;
+  return estado.coberturas[k] ? empPorId(estado.coberturas[k]) || null : null;
+}
+function ausenciasDoMes(chave) {
+  const lista = [];
+  Object.entries(estado.ausencias).forEach(([id, dias]) => {
+    const e = empPorId(id);
+    if (!e) return;
+    Object.entries(dias).forEach(([data, tipo]) => { if (mesDe(data) === chave) lista.push({ id, data, tipo, emp: e }); });
+  });
+  return lista.sort((a, b) => a.data.localeCompare(b.data) || a.emp.nome.localeCompare(b.emp.nome, 'pt-BR'));
+}
+function limparCoberturasOrfas() {
+  Object.keys(estado.coberturas).forEach(k => {
+    const [data, idAus] = k.split('|');
+    const sub = estado.coberturas[k];
+    if (!empPorId(idAus) || !empPorId(sub) || !ausenciaDe(idAus, data)) delete estado.coberturas[k];
+  });
+}
+
+/* 'F' folga, 'T' trabalho, 'A' ausente, 'C' cobrindo, null sem escala */
 function situacao(idEmp, data) {
+  if (ausenciaDe(idEmp, data)) return 'A';
+  if (cobrindoEm(idEmp, data)) return 'C';
   const sem = (estado.semanas[idEmp] || {})[segundaDe(data)];
   if (!sem) return null;
   return sem.includes(data) ? 'F' : 'T';
 }
+function folgaPlanejada(idEmp, data) {
+  const sem = (estado.semanas[idEmp] || {})[segundaDe(data)];
+  return !!sem && sem.includes(data);
+}
 function contaTrabalhando(data, posto, turno) {
-  return estado.emps.filter(e => e.posto === posto && e.turno === turno && situacao(e.id, data) === 'T').length;
+  let n = estado.emps.filter(e => e.posto === posto && e.turno === turno && situacao(e.id, data) === 'T').length;
+  Object.keys(estado.coberturas).forEach(k => {
+    if (!k.startsWith(`${data}|`)) return;
+    const a = empPorId(k.split('|')[1]);
+    const s = empPorId(estado.coberturas[k]);
+    if (a && s && a.posto === posto && a.turno === turno && !ausenciaDe(s.id, data)) n++;
+  });
+  return n;
 }
 
 /* ---------- Geração automática ---------- */
@@ -572,10 +853,19 @@ function semanaFixa(idEmp, segunda, chave) {
   return false;
 }
 
+/* Último domingo de folga antes de uma segunda-feira, olhando as semanas já guardadas. */
+function ultimoDomingoAntes(idEmp, segunda) {
+  const semanas = estado.semanas[idEmp] || {};
+  let ult = null;
+  Object.keys(semanas).forEach(seg => {
+    if (seg >= segunda) return;
+    semanas[seg].forEach(d => { if (ehDomingo(d) && (!ult || d > ult)) ult = d; });
+  });
+  return ult;
+}
+
 function gerarMes(chave) {
-  const dias = diasDoMes(chave);
-  const segundas = [];
-  for (let s = segundaDe(dias[0]); s <= dias[dias.length - 1]; s = somaDias(s, 7)) segundas.push(s);
+  const segundas = segundasDoMes(chave);
   estado.contaGeracao = (estado.contaGeracao || 0) + 1;
   const sorteio = geradorAleatorio(Number(chave.replace('-', '')) * 31 + estado.contaGeracao * 7919);
   POSTOS.forEach(posto => Object.keys(TURNOS).forEach(turno => {
@@ -601,6 +891,7 @@ function resolverGrupo(grupo, minimo, chave, segundas, sorteio) {
 function tentarPlano(grupo, minimo, chave, segundas, sorteio) {
   const folgaLivre = Math.max(0, grupo.length - minimo);
   const creditaFds = data => ehFds(data) && mesDe(data) === chave;
+  const N = Number(estado.domingoCadaSemanas) || 0;
   // Menor início de par seguido (0=seg/ter ... 5=sáb/dom) que alcança um fim de semana do mês, por semana.
   const alcanceFds = segundas.map(seg =>
     mesDe(somaDias(seg, 5)) === chave ? 4 : mesDe(somaDias(seg, 6)) === chave ? 5 : Infinity);
@@ -609,18 +900,23 @@ function tentarPlano(grupo, minimo, chave, segundas, sorteio) {
     return false;
   };
 
-  const folgas = {}, credito = {}, ultima = {};
-  grupo.forEach(e => {
+  const folgas = {}, credito = {}, ultima = {}, ultDom = {}, defasagem = {};
+  grupo.forEach((e, idx) => {
     folgas[e.id] = {};
     credito[e.id] = 0;
     const anterior = (estado.semanas[e.id] || {})[somaDias(segundas[0], -7)];
     ultima[e.id] = anterior && anterior.length ? anterior[anterior.length - 1] : null;
+    ultDom[e.id] = ultimoDomingoAntes(e.id, segundas[0]);
+    // Sem histórico, cada pessoa entra numa fase diferente do rodízio de domingos.
+    defasagem[e.id] = N ? idx % N : 0;
     segundas.forEach(seg => {
       if (semanaFixa(e.id, seg, chave)) credito[e.id] += estado.semanas[e.id][seg].filter(creditaFds).length;
     });
   });
+  // Semanas seguidas sem domingo de folga antes da semana i.
+  const semanasSemDomingo = (id, seg, i) => ultDom[id] ? difDias(seg, segundaDe(ultDom[id])) / 7 - 1 : i + defasagem[id];
 
-  let falta = 0, quebras = 0, separadas = 0;
+  let falta = 0, quebras = 0, separadas = 0, semDom = 0;
   segundas.forEach((seg, i) => {
     const dias = Array.from({ length: 7 }, (_, d) => somaDias(seg, d));
     const folgasDia = new Array(7).fill(0);
@@ -628,19 +924,21 @@ function tentarPlano(grupo, minimo, chave, segundas, sorteio) {
     grupo.forEach(e => {
       if (semanaFixa(e.id, seg, chave)) {
         const fixas = estado.semanas[e.id][seg];
-        fixas.forEach(f => { folgasDia[dias.indexOf(f)]++; });
+        fixas.forEach(f => { folgasDia[dias.indexOf(f)]++; if (ehDomingo(f)) ultDom[e.id] = f; });
         if (fixas.length) ultima[e.id] = fixas[fixas.length - 1];
       } else {
         livres.push(e);
       }
     });
-    // Quem ainda não tem folga no fim de semana escolhe primeiro.
-    livres.sort((a, b) => (credito[a.id] > 0) - (credito[b.id] > 0) || sorteio() - 0.5);
+    // Quem está há mais semanas sem domingo escolhe primeiro; depois quem ainda não tem folga no fim de semana.
+    livres.sort((a, b) => (N ? semanasSemDomingo(b.id, seg, i) - semanasSemDomingo(a.id, seg, i) : 0)
+      || (credito[a.id] > 0) - (credito[b.id] > 0) || sorteio() - 0.5);
 
     livres.forEach(e => {
       const proxSeg = somaDias(seg, 7);
       const proxGuardada = (estado.semanas[e.id] || {})[proxSeg];
       const proxFixa = proxGuardada && (i + 1 >= segundas.length || semanaFixa(e.id, proxSeg, chave)) ? proxGuardada[0] : null;
+      const semDomHa = semanasSemDomingo(e.id, seg, i);
       let escolha = null, custoMin = Infinity, quebraEscolha = false;
       PARES.forEach(([d1, d2]) => {
         const a = dias[d1], b = dias[d2];
@@ -650,8 +948,9 @@ function tentarPlano(grupo, minimo, chave, segundas, sorteio) {
         if (d2 !== d1 + 1) custo += 60;
         const quebra = !!proxFixa && difDias(proxFixa, b) - 1 > MAX_SEGUIDOS;
         if (quebra) custo += 5000;
+        // Estourar a capacidade do dia abre furo: pesa mais que qualquer preferência.
         [d1, d2].forEach(d => {
-          if (folgasDia[d] >= folgaLivre) custo += 100;
+          if (folgasDia[d] >= folgaLivre) custo += 400;
           custo += folgasDia[d] * 2;
         });
         const ganho = [a, b].filter(creditaFds).length;
@@ -660,6 +959,15 @@ function tentarPlano(grupo, minimo, chave, segundas, sorteio) {
           else if (!alcanca(d2 - 1, i)) custo += 800;
         } else {
           custo += ganho * credito[e.id] * 6;
+        }
+        if (N) {
+          // Para voltar ao domingo sem passar de 6 dias seguidos, a folga só "sobe" um dia por semana:
+          // em w semanas o par precisa terminar em d2 >= 6 - w. Penaliza quem se afasta demais do domingo.
+          const w = Math.max(0, N - 1 - semDomHa);
+          if (d2 === 6) custo -= 10 + semDomHa * 30;
+          else if (w === 0) custo += 90;
+          else if (d2 < 6 - w) custo += 120;
+          custo += (5 - d1) * 2;
         }
         if (custo < custoMin) { custoMin = custo; escolha = [d1, d2]; quebraEscolha = quebra; }
       });
@@ -672,6 +980,8 @@ function tentarPlano(grupo, minimo, chave, segundas, sorteio) {
       folgasDia[escolha[1]]++;
       credito[e.id] += [a, b].filter(creditaFds).length;
       ultima[e.id] = b;
+      if (escolha[1] === 6) ultDom[e.id] = b;
+      else if (N && semDomHa + 1 >= N) semDom++;
     });
 
     folgasDia.forEach(n => { falta += Math.max(0, minimo - (grupo.length - n)); });
@@ -682,8 +992,8 @@ function tentarPlano(grupo, minimo, chave, segundas, sorteio) {
   const dispersao = Math.max(...creditos) - Math.min(...creditos);
   return {
     folgas,
-    nota: quebras * 1e7 + semFds * 1e5 + falta * 1e3 + separadas * 50 + dispersao * 10,
-    perfeito: quebras === 0 && semFds === 0 && falta === 0 && separadas === 0 && dispersao <= 1
+    nota: quebras * 1e7 + falta * 1e5 + semFds * 5e4 + semDom * 2e4 + separadas * 50 + dispersao * 10,
+    perfeito: quebras === 0 && semFds === 0 && semDom === 0 && falta === 0 && separadas === 0 && dispersao <= 1
   };
 }
 
@@ -709,14 +1019,16 @@ function coberturaDoMes(chave) {
 }
 
 function estatPessoa(emp, chave) {
-  let dias = 0, folgas = 0, fds = 0, sem = 0;
+  let dias = 0, folgas = 0, fds = 0, dom = 0, sem = 0, aus = 0, extras = 0;
   diasDoMes(chave).forEach(data => {
     const st = situacao(emp.id, data);
     if (st === 'T') dias++;
-    else if (st === 'F') { folgas++; if (ehFds(data)) fds++; }
+    else if (st === 'C') { dias++; extras++; }
+    else if (st === 'A') aus++;
+    else if (st === 'F') { folgas++; if (ehFds(data)) fds++; if (ehDomingo(data)) dom++; }
     else sem++;
   });
-  return { dias, folgas, fds, sem, horas: dias * estado.horasDia };
+  return { dias, folgas, fds, dom, sem, aus, extras, horas: dias * estado.horasDia };
 }
 
 function maiorSequencia(idEmp) {
@@ -730,6 +1042,42 @@ function maiorSequencia(idEmp) {
 }
 const semanasCompletas = idEmp => Object.values(estado.semanas[idEmp] || {}).every(l => l.length === 2);
 const cumpreRegra = idEmp => semanasCompletas(idEmp) && maiorSequencia(idEmp) <= MAX_SEGUIDOS;
+
+/* Maior sequência de semanas seguidas (já escaladas) sem domingo de folga. */
+function semanasSemDomingo(idEmp) {
+  const semanas = estado.semanas[idEmp] || {};
+  const segs = Object.keys(semanas).sort();
+  let maior = 0, atual = 0;
+  segs.forEach((seg, i) => {
+    if (i > 0 && difDias(seg, segs[i - 1]) !== 7) atual = 0;
+    if (semanas[seg].some(ehDomingo)) atual = 0;
+    else { atual++; maior = Math.max(maior, atual); }
+  });
+  return maior;
+}
+const domingoOk = idEmp => !estado.domingoCadaSemanas || semanasSemDomingo(idEmp) < Number(estado.domingoCadaSemanas);
+const horasSemana = () => estado.horasDia * 5;
+const tetoSemanal = () => hojeIso >= LIMITE_40 ? 40 : hojeIso >= LIMITE_42 ? 42 : 44;
+
+/* ---------- Dimensionamento ---------- */
+function dimensionamento() {
+  const linhas = [];
+  let tot = { minimo: 0, hoje: 0, nec6: 0, nec5: 0, deficit: 0, extrasSemana: 0 };
+  POSTOS.forEach(posto => Object.keys(TURNOS).forEach(turno => {
+    const k = chaveGrupo(posto, turno);
+    const minimo = minDe(posto, turno);
+    const cadastrados = estado.emps.filter(e => e.posto === posto && e.turno === turno).length;
+    const sim = estado.simulacao[k];
+    const hoje = sim === undefined || sim === null || sim === '' ? cadastrados : Number(sim);
+    const nec6 = Math.ceil(minimo * 7 / 6);
+    const nec5 = Math.ceil(minimo * 7 / 5);
+    const deficit = Math.max(0, nec5 - hoje);
+    const extrasSemana = Math.max(0, minimo * 7 - hoje * 5) * estado.horasDia;
+    linhas.push({ posto, turno, k, minimo, cadastrados, hoje, nec6, nec5, deficit, extrasSemana, simulado: hoje !== cadastrados });
+    tot.minimo += minimo; tot.hoje += hoje; tot.nec6 += nec6; tot.nec5 += nec5; tot.deficit += deficit; tot.extrasSemana += extrasSemana;
+  }));
+  return { linhas, tot };
+}
 
 /* ---------- Troca de folga ---------- */
 function moverFolga(idEmp, sai, entra) {
@@ -753,8 +1101,8 @@ function validarTroca(idA, x, idB, y) {
   if (!coerente) {
     if (x === y) add('erro', 'Os dois já folgam nesse mesmo dia: não há o que trocar.');
     else {
-      if (situacao(idA, y) !== 'T') add('erro', `${a.nome} já não trabalha em ${curta(y)}, então não pode assumir essa folga.`);
-      if (situacao(idB, x) !== 'T') add('erro', `${b.nome} já não trabalha em ${curta(x)}, então não pode assumir essa folga.`);
+      if (situacao(idA, y) !== 'T') add('erro', `${a.nome} não está escalado(a) para trabalhar em ${curta(y)}, então não pode assumir essa folga.`);
+      if (situacao(idB, x) !== 'T') add('erro', `${b.nome} não está escalado(a) para trabalhar em ${curta(x)}, então não pode assumir essa folga.`);
     }
     return { itens, pode: false };
   }
@@ -780,11 +1128,15 @@ function validarTroca(idA, x, idB, y) {
   if (semFds.length) semFds.forEach(e => add('erro', `${e.nome} ficaria sem folga no fim de semana neste mês.`));
   else add('ok', 'Os dois mantêm ao menos 1 folga no fim de semana no mês.');
 
+  const semDom = pessoas.filter(e => !domingoOk(e.id));
+  if (semDom.length) semDom.forEach(e => add('aviso', `${e.nome} ficaria ${semanasSemDomingo(e.id)} semanas sem domingo de folga (regra: a cada ${estado.domingoCadaSemanas}).`));
+  else if (estado.domingoCadaSemanas) add('ok', 'A regra do domingo de folga continua atendida.');
+
   const furosNovos = [];
   antes.forEach((n0, k) => {
     const [d, p, t] = k.split('|');
     const n1 = contaTrabalhando(d, Number(p), t);
-    if (n1 < n0 && n1 < minDe(Number(p), t)) furosNovos.push(`${curta(d)} · Posto ${p} · ${TURNOS[t]} (${n1} de ${minDe(Number(p), t)})`);
+    if (n1 < n0 && n1 < minDe(Number(p), t)) furosNovos.push(`${curta(d)} · ${rotuloGrupo(Number(p), t)} (${n1} de ${minDe(Number(p), t)})`);
   });
   aplicarTroca(idA, y, idB, x);
 
@@ -795,6 +1147,130 @@ function validarTroca(idA, x, idB, y) {
   if (a.posto !== b.posto || a.turno !== b.turno) add('aviso', 'Atenção: posto ou turno diferentes; os dias mudam de equipe.');
 
   return { itens, pode: !itens.some(i => i.tipo === 'erro') };
+}
+
+/* ---------- Cobertura de ausência ---------- */
+function candidatosCobertura(idAus, data) {
+  const aus = empPorId(idAus);
+  if (!aus) return [];
+  const seg = segundaDe(data);
+  const diasSemana = Array.from({ length: 7 }, (_, d) => somaDias(seg, d));
+  return estado.emps.filter(e => e.id !== idAus && !ausenciaDe(e.id, data) && !cobrindoEm(e.id, data))
+    .map(e => {
+      const st = situacao(e.id, data);
+      const mesmoGrupo = e.posto === aus.posto && e.turno === aus.turno;
+      const mesmoPosto = e.posto === aus.posto;
+      const mesmoTurno = e.turno === aus.turno;
+      let nivel, motivo;
+      if (st === 'F' && mesmoGrupo) { nivel = 1; motivo = 'está de folga, mesma equipe'; }
+      else if (st === 'F' && mesmoPosto) { nivel = 2; motivo = `está de folga, turno ${TURNOS[e.turno].toLowerCase()} do mesmo posto`; }
+      else if (st === 'F' && mesmoTurno) { nivel = 3; motivo = `está de folga em ${nomePostoCurto(e.posto)}, mesmo turno`; }
+      else if (st === 'T' && mesmoPosto && !mesmoGrupo) { nivel = 4; motivo = `já trabalha no turno ${TURNOS[e.turno].toLowerCase()}: dobra de turno`; }
+      else return null;
+      const diasNaSemana = diasSemana.filter(d => ['T', 'C'].includes(situacao(e.id, d))).length + 1;
+      const avisos = [];
+      if (st === 'F') avisos.push(diasNaSemana >= 6 ? `${diasNaSemana}º dia na semana: hora extra ou folga compensatória` : 'fica com 2 folgas na semana');
+      if (nivel === 4) avisos.push('confirmar intervalo de 11 h entre jornadas');
+      if (e.funcao !== aus.funcao) avisos.push(`função diferente (${FUNCOES[e.funcao]})`);
+      return { emp: e, nivel, motivo, avisos, diasNaSemana, st };
+    })
+    .filter(Boolean)
+    .sort((a, b) => a.nivel - b.nivel || a.diasNaSemana - b.diasNaSemana || a.emp.nome.localeCompare(b.emp.nome, 'pt-BR'));
+}
+function registrarAusencia(id, data, tipo) {
+  if (!estado.ausencias[id]) estado.ausencias[id] = {};
+  estado.ausencias[id][data] = tipo;
+  // Quem fica ausente deixa de cobrir alguém nesse dia.
+  Object.keys(estado.coberturas).forEach(k => { if (k.startsWith(`${data}|`) && estado.coberturas[k] === id) delete estado.coberturas[k]; });
+  estado.historico.unshift({ ts: Date.now(), tipo: 'ausencia', mes: mesDe(data), nomeA: empPorId(id).nome, x: data, tipoAus: tipo });
+  estado.historico = estado.historico.slice(0, 300);
+}
+function removerAusencia(id, data) {
+  if (estado.ausencias[id]) delete estado.ausencias[id][data];
+  delete estado.coberturas[`${data}|${id}`];
+}
+
+/* ---------- Mensagens WhatsApp ---------- */
+const foneDigitos = f => String(f || '').replace(/\D/g, '');
+function linkZap(fone, texto) {
+  const d = foneDigitos(fone);
+  if (!d) return '';
+  const num = d.startsWith('55') ? d : `55${d}`;
+  return `https://wa.me/${num}?text=${encodeURIComponent(texto)}`;
+}
+function textoDia(st, tipo) {
+  if (st === 'F') return '*FOLGA*';
+  if (st === 'A') return `ausência (${(TIPOS_AUS[tipo] || 'outro').toLowerCase()})`;
+  if (st === 'C') return '*dia extra (cobertura)*';
+  if (st === 'T') return 'trabalho';
+  return 'sem escala';
+}
+function mensagemSemana(emp, seg) {
+  const dias = Array.from({ length: 7 }, (_, d) => somaDias(seg, d));
+  const linhas = dias.map(d => `${curtaDia(d)} · ${textoDia(situacao(emp.id, d), ausenciaDe(emp.id, d))}`);
+  const folgas = dias.filter(d => situacao(emp.id, d) === 'F').map(curtaDia);
+  const hor = horarioTurno(emp.turno);
+  return [
+    `*Escala da semana · ${nomePostoCurto(emp.posto)}*`,
+    `Olá, ${emp.nome.split(' ')[0]}! Sua escala de ${curta(dias[0])} a ${curta(dias[6])}, turno ${TURNOS[emp.turno].toLowerCase()}${hor ? ` (${hor})` : ''}:`,
+    '',
+    ...linhas,
+    '',
+    folgas.length ? `Folgas: ${folgas.join(' e ')}.` : 'Semana sem folga registrada: fale com o gerente.',
+    'Dúvidas ou trocas, fale com o gerente. Responda SAIR para não receber estes avisos.'
+  ].join('\n');
+}
+function mensagemCobertura(sub, aus, data) {
+  const hor = horarioTurno(aus.turno);
+  return [
+    `*Pedido de cobertura · ${nomePostoCurto(aus.posto)}*`,
+    `Olá, ${sub.nome.split(' ')[0]}! Você pode cobrir o turno ${TURNOS[aus.turno].toLowerCase()}${hor ? ` (${hor})` : ''} em ${curtaDia(data)}?`,
+    `A vaga é de ${aus.nome} (${(TIPOS_AUS[ausenciaDe(aus.id, data)] || 'ausência').toLowerCase()}).`,
+    '',
+    'Responda *SIM* para confirmar ou *NÃO* se não puder. Obrigado!'
+  ].join('\n');
+}
+function mensagemGestor(data) {
+  const linhas = [`*Resumo do dia · ${curtaDia(data)}*`];
+  POSTOS.forEach(p => {
+    linhas.push('', `*${nomePosto(p)}*`);
+    Object.keys(TURNOS).forEach(t => {
+      const n = contaTrabalhando(data, p, t), m = minDe(p, t);
+      linhas.push(`• ${TURNOS[t]}: ${n} trabalhando (mín. ${m}) ${n < m ? '⚠️ furo' : '✅'}`);
+    });
+  });
+  const aus = empsOrdenados().filter(e => ausenciaDe(e.id, data));
+  linhas.push('', aus.length ? `Ausências: ${aus.map(e => {
+    const c = ausenteCoberto(e.id, data);
+    return `${e.nome} (${TIPOS_AUS[ausenciaDe(e.id, data)].toLowerCase()})${c ? `, coberto por ${c.nome}` : ', *sem cobertura*'}`;
+  }).join('; ')}.` : 'Ausências: nenhuma.');
+  const folgas = empsOrdenados().filter(e => situacao(e.id, data) === 'F').map(e => e.nome.split(' ')[0]);
+  linhas.push(`Folgas hoje: ${folgas.length ? folgas.join(', ') : 'ninguém'}.`);
+  return linhas.join('\n');
+}
+function mensagemFuros(chave) {
+  const filtro = estado.filtro;
+  estado.filtro = { posto: 'todos', turno: 'todos' };
+  const cob = coberturaDoMes(chave);
+  estado.filtro = filtro;
+  if (!cob.furos.length) return `*Cobertura · ${rotuloMes(chave)}*\nNenhum dia abaixo do mínimo nos 2 postos. ✅`;
+  return [
+    `*Alerta de cobertura · ${rotuloMes(chave)}*`,
+    `${cob.furos.length} ${cob.furos.length === 1 ? 'dia/turno' : 'dias/turnos'} abaixo do mínimo:`,
+    ...cob.furos.slice(0, 25).map(f => `• ${curtaDia(f.data)} · ${rotuloGrupo(f.posto, f.turno)}: ${f.n} de ${f.minimo}`),
+    cob.furos.length > 25 ? `… e mais ${cob.furos.length - 25}.` : '',
+    '',
+    'Abra a escala para registrar coberturas ou ajustar folgas.'
+  ].filter(Boolean).join('\n');
+}
+async function copiar(texto) {
+  try { await navigator.clipboard.writeText(texto); avisar('Mensagem copiada.'); }
+  catch (e) {
+    const ta = document.createElement('textarea');
+    ta.value = texto; document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); avisar('Mensagem copiada.'); } catch (e2) { avisar('Não foi possível copiar; selecione o texto.'); }
+    ta.remove();
+  }
 }
 
 /* ---------- Histórico ---------- */
@@ -812,6 +1288,7 @@ const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const fmtNum = (n, casas = 0) => n.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: casas });
 const fmtPct = n => n === null ? '—' : `${fmtNum(n, n === 100 ? 0 : 1)}%`;
+const fmtBrl = n => n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
 
 let toastTimer;
 function avisar(msg) {
@@ -827,6 +1304,25 @@ function trocarAba(nome) {
   document.querySelectorAll('.aba').forEach(s => s.classList.toggle('ativa', s.id === `aba-${nome}`));
   window.scrollTo(0, 0);
 }
+function opcoesPosto(sel, comTodos) {
+  const atual = sel.value;
+  sel.innerHTML = (comTodos ? '<option value="todos">Todos</option>' : '') +
+    POSTOS.map(p => `<option value="${p}">${esc(nomePosto(p))}</option>`).join('');
+  if ([...sel.options].some(o => o.value === atual)) sel.value = atual;
+}
+
+/* ---------- Interface: topo ---------- */
+function renderTopo() {
+  $('topoSub').textContent = `Piloto: ${POSTOS.map(nomePosto).join(' e ')}`;
+  const faltam = difDias(LIMITE_42, hojeIso);
+  const el = $('prazo');
+  if (faltam > 0) el.innerHTML = `EC 141/2026 · <b>${faltam} dias</b> para o teto de 42 h/semana (${longa(LIMITE_42)})`;
+  else if (hojeIso < LIMITE_40) el.innerHTML = `EC 141/2026 · teto de <b>42 h/semana</b> em vigor desde ${longa(LIMITE_42)} · 40 h em ${longa(LIMITE_40)}`;
+  else el.innerHTML = `EC 141/2026 · teto de <b>40 h/semana</b> em vigor`;
+  const abertas = ausenciasDoMes(estado.mes).filter(a => !ausenteCoberto(a.id, a.data)).length;
+  $('contAus').hidden = abertas === 0;
+  $('contAus').textContent = abertas;
+}
 
 /* ---------- Interface: Escala ---------- */
 let marcacao = null;   // primeira folga tocada na grade { id, data }
@@ -834,15 +1330,16 @@ let marcacao = null;   // primeira folga tocada na grade { id, data }
 function renderEscala() {
   const chave = estado.mes;
   $('mesRotulo').textContent = rotuloMes(chave);
+  opcoesPosto($('filtroPosto'), true);
   $('filtroPosto').value = estado.filtro.posto;
   $('filtroTurno').value = estado.filtro.turno;
   $('btnGerar').textContent = estado.geradas[chave] ? 'Gerar novamente' : 'Gerar escala';
 
   const filtroTxt = [
-    estado.filtro.posto === 'todos' ? 'Todos os postos' : `Posto ${estado.filtro.posto}`,
+    estado.filtro.posto === 'todos' ? 'Todos os postos' : nomePosto(Number(estado.filtro.posto)),
     estado.filtro.turno === 'todos' ? 'todos os turnos' : `turno ${TURNOS[estado.filtro.turno].toLowerCase()}`
   ].join(' · ');
-  $('impressaoSub').textContent = `${rotuloMes(chave)} · ${filtroTxt} · T = trabalho, F = folga`;
+  $('impressaoSub').textContent = `${rotuloMes(chave)} · ${filtroTxt} · T = trabalho, F = folga, A = ausência, C = cobertura`;
 
   const alvo = $('conteudoEscala');
   const pendentes = estado.geradas[chave] ? estado.emps.filter(e => estatPessoa(e, chave).sem > 0) : [];
@@ -863,7 +1360,7 @@ function renderEscala() {
     return;
   }
   const cob = coberturaDoMes(chave);
-  alvo.innerHTML = htmlKpis(cob, chave) + htmlAlerta(cob) + htmlGrade(cob, chave) + htmlPaineis(cob, chave);
+  alvo.innerHTML = htmlKpis(cob, chave) + htmlAlerta(cob, chave) + htmlGrade(cob, chave) + htmlPaineis(cob, chave);
 }
 
 function pessoasFiltradas() {
@@ -874,31 +1371,43 @@ function htmlKpis(cob, chave) {
   const pessoas = pessoasFiltradas();
   const est = pessoas.map(e => estatPessoa(e, chave));
   const comFds = est.filter(s => s.fds >= 1).length;
-  const totalFds = est.reduce((t, s) => t + s.fds, 0);
+  const comDom = est.filter(s => s.dom >= 1).length;
+  const domOk = pessoas.filter(e => domingoOk(e.id)).length;
   const horas = est.map(s => s.horas);
   const media = horas.length ? horas.reduce((a, b) => a + b, 0) / horas.length : 0;
   const regraOk = pessoas.filter(e => cumpreRegra(e.id)).length;
-  const kpi = (rot, val, sub, ruim, extra = '') => `<div class="kpi${ruim ? ' ruim' : ''}">
+  const hs = horasSemana(), teto = tetoSemanal();
+  const kpi = (rot, val, sub, ruim, extra = '', bom = false) => `<div class="kpi${ruim ? ' ruim' : bom ? ' bom' : ''}">
     <div class="rot">${rot}</div><div class="val">${val}</div>${extra}<div class="sub">${sub}</div></div>`;
   const pctBarra = cob.pct === null ? 0 : cob.pct;
   return `<div class="kpis">
     ${kpi('Cobertura', fmtPct(cob.pct), `${cob.preenchidas} de ${cob.vagas} vagas mínimas`, cob.pct !== null && cob.pct < 100,
-      `<div class="medidor${cob.pct !== null && cob.pct < 100 ? ' ruim' : ''}"><i style="width:${pctBarra}%"></i></div>`)}
+      `<div class="medidor${cob.pct !== null && cob.pct < 100 ? ' ruim' : ''}"><i style="width:${pctBarra}%"></i></div>`, cob.pct === 100)}
     ${kpi('Furos de cobertura', cob.furos.length, cob.furos.length ? 'dias/turnos abaixo do mínimo' : 'nenhum dia abaixo do mínimo', cob.furos.length > 0)}
-    ${kpi('Folga no fim de semana', `${comFds}/${pessoas.length}`, `pessoas com ao menos 1 · ${totalFds} dias no total`, comFds < pessoas.length)}
-    ${kpi('Horas por pessoa', `${fmtNum(media, 1)} h`, horas.length ? `média · mín. ${fmtNum(Math.min(...horas), 1)} · máx. ${fmtNum(Math.max(...horas), 1)}` : 'sem pessoas no filtro', false)}
     ${kpi('Regra 5x2', `${regraOk}/${pessoas.length}`, `2 folgas/semana · até ${MAX_SEGUIDOS} dias seguidos`, regraOk < pessoas.length)}
+    ${estado.domingoCadaSemanas
+      ? kpi('Domingo de folga', `${domOk}/${pessoas.length}`, `dentro da regra (a cada ${estado.domingoCadaSemanas} semanas) · ${comDom} com domingo neste mês`, domOk < pessoas.length)
+      : kpi('Domingo de folga', `${comDom}/${pessoas.length}`, 'pessoas com domingo de folga neste mês · regra desligada em Ajustes', false)}
+    ${kpi('Folga no fim de semana', `${comFds}/${pessoas.length}`, 'pessoas com ao menos 1 no mês', comFds < pessoas.length)}
+    ${kpi('Jornada semanal', `${fmtNum(hs, 1)} h`, hojeIso < LIMITE_42 ? `teto de 42 h a partir de ${curta(LIMITE_42)} · média ${fmtNum(media, 1)} h no mês` : `teto ${teto} h · média ${fmtNum(media, 1)} h no mês por pessoa`, hs > teto, '', hs <= 40)}
   </div>`;
 }
 
-function htmlAlerta(cob) {
+function htmlAlerta(cob, chave) {
+  let html = '';
+  const abertas = ausenciasDoMes(chave).filter(a => !ausenteCoberto(a.id, a.data) && passaFiltro(a.emp.posto, a.emp.turno));
+  if (abertas.length) {
+    html += `<div class="alerta atencao">⚠ ${abertas.length} ${abertas.length === 1 ? 'ausência sem cobertura' : 'ausências sem cobertura'}: ${
+      abertas.slice(0, 6).map(a => `${esc(a.emp.nome)} (${curtaDia(a.data)})`).join(', ')}${abertas.length > 6 ? '…' : ''}.
+      <button type="button" class="btn peq" data-ir="ausencias" style="margin-left:6px">Ver sugestões de cobertura</button></div>`;
+  }
   if (!cob.furos.length) {
-    return `<div class="alerta ok" role="status">✓ Sem furos de cobertura neste mês${
+    return html + `<div class="alerta ok" role="status">✓ Sem furos de cobertura neste mês${
       estado.filtro.posto !== 'todos' || estado.filtro.turno !== 'todos' ? ' (no filtro atual)' : ''}.</div>`;
   }
   const itens = cob.furos.map(f =>
-    `<li><b>${curtaDia(f.data)}</b> · Posto ${f.posto} · ${TURNOS[f.turno]}: ${f.n} de ${f.minimo}</li>`).join('');
-  return `<div class="alerta furo" role="alert">
+    `<li><b>${curtaDia(f.data)}</b> · ${esc(rotuloGrupo(f.posto, f.turno))}: ${f.n} de ${f.minimo}</li>`).join('');
+  return html + `<div class="alerta furo" role="alert">
     <h2>⚠ ${cob.furos.length} ${cob.furos.length === 1 ? 'furo' : 'furos'} de cobertura abaixo do mínimo</h2>
     <ul class="furos">${itens}</ul></div>`;
 }
@@ -917,7 +1426,8 @@ function htmlGrade(cob, chave) {
     const minimo = minDe(posto, turno);
     const membros = empsOrdenados().filter(e => e.posto === posto && e.turno === turno);
     if (!membros.length && !minimo) return;
-    corpo += `<tr class="grupo"><td class="nome">Posto ${posto} · ${TURNOS[turno]}</td><td colspan="${dias.length + 2}"></td></tr>`;
+    const hor = horarioTurno(turno);
+    corpo += `<tr class="grupo"><td class="nome">${esc(nomePostoCurto(posto))} · ${TURNOS[turno]}${hor ? ` <small>${esc(hor)}</small>` : ''}</td><td colspan="${dias.length + 2}"></td></tr>`;
     membros.forEach(e => {
       const st = estatPessoa(e, chave);
       const celulas = dias.map(d => {
@@ -926,10 +1436,15 @@ function htmlGrade(cob, chave) {
           const marcada = marcacao && marcacao.id === e.id && marcacao.data === d;
           return `<td><button type="button" class="dia f${marcada ? ' marcada' : ''}" data-id="${esc(e.id)}" data-data="${d}" title="${esc(e.nome)}: folga em ${curtaDia(d)}. Toque para trocar" aria-label="${esc(e.nome)}, folga em ${curtaDia(d)}">F</button></td>`;
         }
-        if (s === 'T') return `<td><span class="dia t" title="${esc(e.nome)}: trabalho em ${curtaDia(d)}">T</span></td>`;
+        if (s === 'T') return `<td><button type="button" class="dia t" data-aus-id="${esc(e.id)}" data-aus-data="${d}" title="${esc(e.nome)}: trabalho em ${curtaDia(d)}. Toque para registrar ausência" aria-label="${esc(e.nome)}, trabalho em ${curtaDia(d)}">T</button></td>`;
+        if (s === 'A') {
+          const c = ausenteCoberto(e.id, d);
+          return `<td><button type="button" class="dia a" data-rm-id="${esc(e.id)}" data-rm-data="${d}" title="${esc(e.nome)}: ${TIPOS_AUS[ausenciaDe(e.id, d)]} em ${curtaDia(d)}${c ? `, coberto por ${esc(c.nome)}` : ', sem cobertura'}. Toque para remover" aria-label="${esc(e.nome)}, ausência em ${curtaDia(d)}">A</button></td>`;
+        }
+        if (s === 'C') return `<td><span class="dia c" title="${esc(e.nome)}: cobrindo ausência em ${curtaDia(d)}${folgaPlanejada(e.id, d) ? ' (era folga: dia extra)' : ''}">C</span></td>`;
         return `<td><span class="dia n" title="Sem escala">–</span></td>`;
       }).join('');
-      corpo += `<tr><td class="nome"><strong title="${esc(e.nome)}">${esc(e.nome)}</strong><small>${esc(FUNCOES[e.funcao] || '')}</small></td>${celulas}
+      corpo += `<tr><td class="nome"><strong title="${esc(e.nome)}">${esc(e.nome)}</strong><small>${esc(FUNCOES[e.funcao] || '')}${st.extras ? ` · +${st.extras} extra` : ''}${st.aus ? ` · ${st.aus} aus.` : ''}</small></td>${celulas}
         <td class="tot">${fmtNum(st.horas, 1)} h</td><td class="tot${st.fds < 1 ? ' ruim' : ''}">${st.fds}</td></tr>`;
     });
     const contagem = dias.map(d => {
@@ -944,14 +1459,16 @@ function htmlGrade(cob, chave) {
   const dicaAtiva = !!marcacao && !!empPorId(marcacao.id);
   const dica = dicaAtiva
     ? `Folga de ${esc(empPorId(marcacao.id).nome)} em ${curta(marcacao.data)} selecionada. Toque na folga do outro colaborador. <button type="button" class="btn peq" data-acao="cancelar-marca">Cancelar</button>`
-    : 'Toque em uma folga (F) e depois na folga de outro colaborador para iniciar uma troca.';
+    : 'Toque em uma folga (F) e depois na folga de outro colaborador para trocar. Toque em um dia de trabalho (T) para registrar falta, atestado ou férias.';
 
   return `<div class="cartao">
     <div class="legenda">
       <span class="i"><span class="amostra" style="background:var(--work);color:var(--work-ink)">T</span> Trabalho</span>
       <span class="i"><span class="amostra" style="background:var(--off);color:var(--off-ink)">F</span> Folga</span>
+      <span class="i"><span class="amostra" style="background:var(--aus);color:var(--aus-ink)">A</span> Ausência</span>
+      <span class="i"><span class="amostra" style="background:var(--cob);color:var(--cob-ink)">C</span> Cobrindo</span>
       <span class="i"><span class="amostra" style="background:var(--danger);color:#fff">!</span> Abaixo do mínimo</span>
-      <span class="i sem-print">H = horas no mês · FDS = dias de folga em sábado ou domingo</span>
+      <span class="i sem-print">H = horas no mês · FDS = folgas em sábado ou domingo</span>
     </div>
     <div class="grade-wrap"><table class="grade">
       <thead><tr><th class="nome" scope="col">Colaborador</th>${cabecalho}<th scope="col" title="Horas no mês">H</th><th scope="col" title="Folgas em sábado ou domingo">FDS</th></tr></thead>
@@ -964,22 +1481,22 @@ function htmlGrade(cob, chave) {
 function htmlPaineis(cob, chave) {
   const linhas = cob.porGrupo.map(g => {
     const ruim = g.pct !== null && g.pct < 100;
-    return `<div class="cob-linha"><span>Posto ${g.posto} · ${TURNOS[g.turno]}</span>
+    return `<div class="cob-linha"><span>${esc(rotuloGrupo(g.posto, g.turno))}</span>
       <div class="medidor${ruim ? ' ruim' : ''}" title="Mínimo de ${g.minimo} por dia"><i style="width:${g.pct === null ? 0 : g.pct}%"></i></div>
       <span class="pct${ruim ? ' ruim' : ''}">${ruim ? '⚠ ' : ''}${fmtPct(g.pct)}</span></div>`;
   }).join('');
   const pessoas = pessoasFiltradas().map(e => {
     const s = estatPessoa(e, chave);
-    return `<tr><td>${esc(e.nome)}<div class="sutil">Posto ${e.posto} · ${TURNOS[e.turno]}</div></td>
-      <td class="num">${s.dias}</td><td class="num">${fmtNum(s.horas, 1)} h</td><td class="num">${s.folgas}</td>
-      <td class="num${s.fds < 1 ? ' ruim' : ''}">${s.fds}</td></tr>`;
+    return `<tr><td>${esc(e.nome)}<div class="sutil">${esc(rotuloGrupo(e.posto, e.turno))}</div></td>
+      <td class="num">${s.dias}${s.extras ? ` <span class="tag info">+${s.extras}</span>` : ''}</td><td class="num">${fmtNum(s.horas, 1)} h</td><td class="num">${s.folgas}</td>
+      <td class="num${s.fds < 1 ? ' ruim' : ''}">${s.fds}</td><td class="num${!domingoOk(e.id) ? ' ruim' : ''}">${s.dom}</td><td class="num${s.aus ? ' ruim' : ''}">${s.aus || ''}</td></tr>`;
   }).join('');
   return `<div class="duas">
     <div class="cartao"><h2>Cobertura por posto e turno</h2>${linhas}</div>
     <div class="cartao"><h2>Horas e folgas por pessoa</h2>
       <div class="rolagem rolagem-v"><table class="lista">
-        <thead><tr><th>Colaborador</th><th class="num">Dias</th><th class="num">Horas</th><th class="num">Folgas</th><th class="num">No FDS</th></tr></thead>
-        <tbody>${pessoas || '<tr><td colspan="5" class="sutil">Nenhuma pessoa no filtro.</td></tr>'}</tbody>
+        <thead><tr><th>Colaborador</th><th class="num">Dias</th><th class="num">Horas</th><th class="num">Folgas</th><th class="num">No FDS</th><th class="num">Dom.</th><th class="num">Aus.</th></tr></thead>
+        <tbody>${pessoas || '<tr><td colspan="7" class="sutil">Nenhuma pessoa no filtro.</td></tr>'}</tbody>
       </table></div>
     </div>
   </div>`;
@@ -997,7 +1514,7 @@ function acaoGerar() {
   salvar();
   renderTudo();
   const furos = coberturaIgnorandoFiltro(chave);
-  avisar(furos ? `Escala gerada com ${furos} furo(s): falta gente para os mínimos configurados.` : 'Escala gerada sem furos de cobertura.');
+  avisar(furos ? `Escala gerada com ${furos} furo(s): falta gente para os mínimos configurados. Veja Dimensionamento.` : 'Escala gerada sem furos de cobertura.');
 }
 function coberturaIgnorandoFiltro(chave) {
   let n = 0;
@@ -1015,12 +1532,12 @@ function celulaCsv(v) {
 }
 function montarCsv(chave) {
   const dias = diasDoMes(chave);
-  const linhas = [['Colaborador', 'Função', 'Posto', 'Turno', 'Dado de exemplo',
-    ...dias.map(d => `${curta(d)} ${DIAS_CURTOS[diaSemana(d)]}`), 'Dias trabalhados', 'Horas', 'Folgas', 'Folgas no FDS']];
+  const linhas = [['Colaborador', 'Função', 'Posto', 'Turno', 'WhatsApp', 'Dado de exemplo',
+    ...dias.map(d => `${curta(d)} ${DIAS_CURTOS[diaSemana(d)]}`), 'Dias trabalhados', 'Horas', 'Folgas', 'Folgas no FDS', 'Domingos de folga', 'Ausências', 'Dias extras']];
   pessoasFiltradas().forEach(e => {
     const s = estatPessoa(e, chave);
-    linhas.push([e.nome, FUNCOES[e.funcao] || '', `Posto ${e.posto}`, TURNOS[e.turno], e.exemplo ? 'Sim' : 'Não',
-      ...dias.map(d => situacao(e.id, d) || ''), s.dias, fmtNum(s.horas, 1), s.folgas, s.fds]);
+    linhas.push([e.nome, FUNCOES[e.funcao] || '', nomePosto(e.posto), TURNOS[e.turno], e.fone || '', e.exemplo ? 'Sim' : 'Não',
+      ...dias.map(d => situacao(e.id, d) || ''), s.dias, fmtNum(s.horas, 1), s.folgas, s.fds, s.dom, s.aus, s.extras]);
   });
   return linhas.map(l => l.map(celulaCsv).join(';')).join('\r\n');
 }
@@ -1031,7 +1548,7 @@ function exportarCsv() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `escala_${chave}.csv`;
+  a.download = `escala_rede_inicial_${chave}.csv`;
   document.body.appendChild(a);
   a.click();
   a.remove();
@@ -1039,19 +1556,150 @@ function exportarCsv() {
   avisar('CSV exportado (respeita os filtros de posto e turno).');
 }
 
+/* ---------- Interface: Dimensionamento ---------- */
+function renderDimensionamento() {
+  const { linhas, tot } = dimensionamento();
+  const custo = Number(estado.custoPessoa) || 0;
+  const hx = Number(estado.valorHoraExtra) || 0;
+  const semanasMes = 52 / 12;
+  const kpi = (rot, val, sub, ruim = false, bom = false) => `<div class="kpi${ruim ? ' ruim' : bom ? ' bom' : ''}"><div class="rot">${rot}</div><div class="val">${val}</div><div class="sub">${sub}</div></div>`;
+  $('dimResumo').innerHTML =
+    kpi('Pessoas hoje', tot.hoje, `para ${tot.minimo} vagas mínimas por dia`) +
+    kpi('Bastava no 6x1', tot.nec6, 'pessoas, com cada uma cobrindo 6 dias') +
+    kpi('Precisa no 5x2', tot.nec5, 'pessoas, com cada uma cobrindo 5 dias', tot.nec5 > tot.hoje) +
+    kpi('Contratar', tot.deficit, tot.deficit ? (custo ? `≈ ${fmtBrl(tot.deficit * custo)} por mês` : 'pessoas, ou cobrir com hora extra') : 'quadro já comporta o 5x2', tot.deficit > 0, tot.deficit === 0) +
+    kpi('Ou horas extras', `${fmtNum(tot.extrasSemana)} h/sem`, tot.extrasSemana ? (hx ? `≈ ${fmtBrl(tot.extrasSemana * semanasMes * hx)} por mês` : `≈ ${fmtNum(tot.extrasSemana * semanasMes)} h por mês`) : 'nenhuma hora extra estrutural', tot.extrasSemana > 0);
+
+  const corpo = linhas.map(l => `<tr>
+    <td>${esc(rotuloGrupo(l.posto, l.turno))}</td>
+    <td class="num">${l.minimo}</td>
+    <td class="num" style="white-space:nowrap"><input type="number" min="0" max="60" step="1" inputmode="numeric" data-sim="${l.k}" value="${l.hoje}" aria-label="Pessoas hoje em ${esc(rotuloGrupo(l.posto, l.turno))}">${l.simulado ? '<div><span class="tag">simulado</span></div>' : ''}</td>
+    <td class="num">${l.nec6}</td>
+    <td class="num">${l.nec5}</td>
+    <td class="num ${l.deficit ? 'ruim' : 'bom'}">${l.deficit ? `+${l.deficit}` : '✓'}</td>
+    <td class="num ${l.extrasSemana ? 'ruim' : ''}">${l.extrasSemana ? `${fmtNum(l.extrasSemana)} h` : '—'}</td>
+  </tr>`).join('');
+  $('tabelaDim').innerHTML = `<thead><tr><th>Posto · turno</th><th class="num">Mínimo por dia</th><th class="num">Pessoas hoje</th><th class="num">Precisa no 6x1</th><th class="num">Precisa no 5x2</th><th class="num">Contratar</th><th class="num">Ou hora extra / semana</th></tr></thead>
+    <tbody>${corpo}</tbody>
+    <tfoot><tr><td>Total</td><td class="num">${tot.minimo}</td><td class="num">${tot.hoje}</td><td class="num">${tot.nec6}</td><td class="num">${tot.nec5}</td><td class="num ${tot.deficit ? 'ruim' : 'bom'}">${tot.deficit ? `+${tot.deficit}` : '✓'}</td><td class="num">${tot.extrasSemana ? `${fmtNum(tot.extrasSemana)} h` : '—'}</td></tr></tfoot>`;
+  $('custoPessoa').value = estado.custoPessoa;
+  $('valorHoraExtra').value = estado.valorHoraExtra;
+
+  const hs = horasSemana();
+  $('listaPrazos').innerHTML = [
+    `<li><b>Hoje (${longa(hojeIso)}):</b> teto de 44 h por semana, escala 6x1 ainda permitida.</li>`,
+    `<li><b>${longa(LIMITE_42)}:</b> 2 folgas por semana e teto de 42 h (EC 141/2026, 2 meses após a publicação em 16/10/2026). Cláusulas de CCT incompatíveis perdem efeito.</li>`,
+    `<li><b>${longa(LIMITE_40)} (aprox.):</b> teto cai para 40 h por semana. Sem redução de salário.</li>`,
+    `<li><b>Escala proposta:</b> ${fmtNum(estado.horasDia, 1)} h × 5 dias = <b>${fmtNum(hs, 1)} h/semana</b> ${hs <= 40 ? '✓ já cumpre as duas etapas' : hs <= 42 ? '✓ cumpre a etapa de 42 h; ajustar antes de ' + longa(LIMITE_40) : '✕ acima de 42 h: ajustar as horas por dia em Ajustes'}.</li>`,
+    `<li><b>A validar com o contador:</b> CCT dos frentistas da região, regra de domingo, intervalo de 11 h entre jornadas e banco de horas.</li>`
+  ].join('');
+}
+
+/* ---------- Interface: Ausências ---------- */
+let msgAberta = null;   // { id, data } da mensagem de cobertura em exibição
+function renderAusencias() {
+  const chave = estado.mes;
+  const sel = $('ausColab');
+  const atual = sel.value;
+  sel.innerHTML = empsOrdenados().map(e => `<option value="${esc(e.id)}">${esc(e.nome)} · ${esc(rotuloGrupo(e.posto, e.turno))}</option>`).join('');
+  if ([...sel.options].some(o => o.value === atual)) sel.value = atual;
+  if (!$('ausData').value) $('ausData').value = mesDe(hojeIso) === chave ? hojeIso : `${chave}-01`;
+
+  const lista = ausenciasDoMes(chave);
+  $('tituloAus').textContent = `Ausências em ${rotuloMes(chave)} (${lista.length})`;
+  if (!lista.length) {
+    $('listaAus').innerHTML = '<p class="sutil">Nenhuma ausência registrada neste mês. Toque em um dia de trabalho (T) na escala ou use o formulário acima.</p>';
+    return;
+  }
+  $('listaAus').innerHTML = lista.map(a => {
+    const cob = ausenteCoberto(a.id, a.data);
+    const n = contaTrabalhando(a.data, a.emp.posto, a.emp.turno), m = minDe(a.emp.posto, a.emp.turno);
+    const cabecalho = `<div class="aus-cab">
+      <div><strong>${esc(a.emp.nome)}</strong> · ${TIPOS_AUS[a.tipo]} em <b>${curtaDia(a.data)}</b>
+        <div class="sutil">${esc(rotuloGrupo(a.emp.posto, a.emp.turno))} · ${n} trabalhando no dia (mín. ${m}) ${n < m ? '<span class="tag ruim">furo</span>' : '<span class="tag ok">coberto</span>'}</div></div>
+      <div class="acoes-linha">
+        ${cob ? `<button type="button" class="btn peq zap" data-msg-cob="${esc(a.id)}|${a.data}">Mensagem para ${esc(cob.nome.split(' ')[0])}</button>
+                 <button type="button" class="btn peq" data-desfazer="${esc(a.id)}|${a.data}">Desfazer cobertura</button>` : ''}
+        <button type="button" class="btn peq perigo" data-rm-aus="${esc(a.id)}|${a.data}">Remover</button>
+      </div></div>`;
+    let corpo = '';
+    if (cob) {
+      corpo = `<p class="sutil" style="margin-top:6px">Coberto por <b>${esc(cob.nome)}</b>${folgaPlanejada(cob.id, a.data) ? ' (era folga: dia extra, hora extra ou folga compensatória)' : ''}.</p>`;
+      if (msgAberta && msgAberta.id === a.id && msgAberta.data === a.data) {
+        const texto = mensagemCobertura(cob, a.emp, a.data);
+        const link = linkZap(cob.fone, texto);
+        corpo += `<div class="msg" id="msgCob">${esc(texto)}</div>
+          <div class="acoes"><button type="button" class="btn peq" data-copiar-texto="${esc(texto)}">Copiar</button>
+          ${link ? `<a class="btn peq zap" href="${esc(link)}" target="_blank" rel="noopener">Abrir no WhatsApp</a>` : '<span class="sutil">Cadastre o WhatsApp do colaborador para abrir a conversa direto.</span>'}</div>`;
+      }
+    } else {
+      const cands = candidatosCobertura(a.id, a.data);
+      corpo = cands.length
+        ? `<ul class="cands">${cands.slice(0, 6).map(c => `<li>
+            <div class="quem">${esc(c.emp.nome)} <small>${esc(FUNCOES[c.emp.funcao])} · ${esc(rotuloGrupo(c.emp.posto, c.emp.turno))} · ${esc(c.motivo)}${c.avisos.length ? ' · ' + esc(c.avisos.join(' · ')) : ''}</small></div>
+            ${c.avisos.some(x => /hora extra|dobra/.test(x)) ? '<span class="tag">hora extra</span>' : '<span class="tag ok">sem custo extra</span>'}
+            <button type="button" class="btn peq prim" data-cobrir="${esc(a.id)}|${a.data}|${esc(c.emp.id)}">Cobrir com ${esc(c.emp.nome.split(' ')[0])}</button>
+          </li>`).join('')}</ul>`
+        : '<p class="sutil" style="margin-top:6px">Ninguém disponível para cobrir neste dia.</p>';
+    }
+    return `<div class="aus-item ${cob ? 'coberta' : 'aberta'}">${cabecalho}${corpo}</div>`;
+  }).join('');
+}
+function registrarAusenciaUI(id, data, tipo) {
+  const e = empPorId(id);
+  if (!e || !data) return;
+  if (situacao(id, data) === 'F') {
+    if (!confirm(`${e.nome} está de folga em ${curtaDia(data)}. Registrar ausência mesmo assim?`)) return;
+  }
+  registrarAusencia(id, data, tipo);
+  if (mesDe(data) !== estado.mes) { estado.mes = mesDe(data); }
+  salvar();
+  renderTudo();
+  const n = contaTrabalhando(data, e.posto, e.turno), m = minDe(e.posto, e.turno);
+  avisar(n < m ? `Ausência registrada: ${rotuloGrupo(e.posto, e.turno)} fica com ${n} de ${m} em ${curtaDia(data)}. Veja quem pode cobrir.` : 'Ausência registrada; o mínimo do dia continua atendido.');
+}
+
+/* ---------- Interface: Avisos ---------- */
+function renderAvisos() {
+  const chave = estado.mes;
+  const segundas = segundasDoMes(chave);
+  const selSem = $('avisoSemana');
+  const atual = selSem.value;
+  selSem.innerHTML = segundas.map(s => `<option value="${s}">${curta(s)} a ${curta(somaDias(s, 6))}</option>`).join('');
+  const segHoje = segundaDe(hojeIso);
+  selSem.value = segundas.includes(atual) ? atual : segundas.includes(segHoje) ? segHoje : segundas[0];
+  opcoesPosto($('avisoPosto'), true);
+
+  const seg = selSem.value;
+  const posto = $('avisoPosto').value;
+  const pessoas = empsOrdenados().filter(e => posto === 'todos' || e.posto === Number(posto));
+  $('listaAvisos').innerHTML = pessoas.length ? pessoas.map(e => {
+    const texto = mensagemSemana(e, seg);
+    const link = linkZap(e.fone, texto);
+    return `<details class="zap"><summary><span>${esc(e.nome)} <small>· ${esc(rotuloGrupo(e.posto, e.turno))}${e.fone ? ` · ${esc(e.fone)}` : ''}</small></span>
+      <span class="acoes-linha"><button type="button" class="btn peq" data-copiar-texto="${esc(texto)}">Copiar</button>${link ? `<a class="btn peq zap" href="${esc(link)}" target="_blank" rel="noopener">WhatsApp</a>` : ''}</span></summary>
+      <div class="msg">${esc(texto)}</div></details>`;
+  }).join('') : '<p class="sutil">Nenhum colaborador no filtro.</p>';
+
+  if (!$('avisoDia').value || mesDe($('avisoDia').value) !== chave) $('avisoDia').value = mesDe(hojeIso) === chave ? hojeIso : `${chave}-01`;
+  $('msgGestor').textContent = mensagemGestor($('avisoDia').value);
+  $('msgFuros').textContent = mensagemFuros(chave);
+}
+
 /* ---------- Interface: Colaboradores ---------- */
 function renderColaboradores() {
+  opcoesPosto($('colabPosto'), false);
   const lista = empsOrdenados();
   $('tituloListaColab').textContent = `Colaboradores (${lista.length})`;
   const linhas = lista.map(e => `<tr>
     <td>${esc(e.nome)}${e.exemplo ? ' <span class="tag">exemplo</span>' : ''}</td>
-    <td>${esc(FUNCOES[e.funcao] || '')}</td><td>Posto ${e.posto}</td><td>${TURNOS[e.turno]}</td>
+    <td>${esc(FUNCOES[e.funcao] || '')}</td><td>${esc(nomePostoCurto(e.posto))}</td><td>${TURNOS[e.turno]}</td><td>${esc(e.fone || '—')}</td>
     <td><div class="acoes-linha">
       <button type="button" class="btn peq" data-editar="${esc(e.id)}">Editar</button>
       <button type="button" class="btn peq perigo" data-remover="${esc(e.id)}">Remover</button>
     </div></td></tr>`).join('');
   $('tabelaColab').innerHTML = lista.length
-    ? `<thead><tr><th>Nome</th><th>Função</th><th>Posto</th><th>Turno</th><th></th></tr></thead><tbody>${linhas}</tbody>`
+    ? `<thead><tr><th>Nome</th><th>Função</th><th>Posto</th><th>Turno</th><th>WhatsApp</th><th></th></tr></thead><tbody>${linhas}</tbody>`
     : '<tbody><tr><td class="sutil">Nenhum colaborador cadastrado.</td></tr></tbody>';
 }
 function limparFormColab() {
@@ -1065,7 +1713,7 @@ function salvarColab(ev) {
   ev.preventDefault();
   const nome = $('colabNome').value.trim();
   if (!nome) { avisar('Informe o nome do colaborador.'); return; }
-  const dados = { nome, funcao: $('colabFuncao').value, posto: Number($('colabPosto').value), turno: $('colabTurno').value };
+  const dados = { nome, funcao: $('colabFuncao').value, posto: Number($('colabPosto').value), turno: $('colabTurno').value, fone: $('colabFone').value.trim() };
   const id = $('colabId').value;
   if (id) {
     const e = empPorId(id);
@@ -1089,6 +1737,7 @@ function editarColab(id) {
   $('colabFuncao').value = e.funcao;
   $('colabPosto').value = String(e.posto);
   $('colabTurno').value = e.turno;
+  $('colabFone').value = e.fone || '';
   $('formColabTitulo').textContent = `Editando ${e.nome}`;
   $('btnSalvarColab').textContent = 'Salvar alterações';
   $('btnCancelarColab').hidden = false;
@@ -1097,6 +1746,8 @@ function editarColab(id) {
 }
 function esquecerColab(id) {
   delete estado.semanas[id];
+  delete estado.ausencias[id];
+  limparCoberturasOrfas();
   if (marcacao && marcacao.id === id) marcacao = null;
   if (troca.a === id) { troca.a = ''; troca.x = ''; }
   if (troca.b === id) { troca.b = ''; troca.y = ''; }
@@ -1135,7 +1786,7 @@ function renderTrocas() {
   if (!valido(troca.b) || troca.b === troca.a) { troca.b = ''; troca.y = ''; }
 
   const optsPessoa = excluir => '<option value="">Selecione…</option>' + comEscala.filter(e => e.id !== excluir)
-    .map(e => `<option value="${esc(e.id)}">${esc(e.nome)} · P${e.posto} ${TURNOS[e.turno]}</option>`).join('');
+    .map(e => `<option value="${esc(e.id)}">${esc(e.nome)} · ${esc(nomePostoCurto(e.posto))} ${TURNOS[e.turno]}</option>`).join('');
   $('trocaA').innerHTML = optsPessoa(troca.b);
   $('trocaB').innerHTML = optsPessoa(troca.a);
   $('trocaA').value = troca.a;
@@ -1178,9 +1829,11 @@ function renderHistorico() {
     return;
   }
   const linhas = estado.historico.map(h => {
-    const desc = h.tipo === 'troca'
-      ? `<strong>Troca</strong>: ${esc(h.nomeA)} passou de ${curtaDia(h.x)} para ${curtaDia(h.y)}; ${esc(h.nomeB)} passou de ${curtaDia(h.y)} para ${curtaDia(h.x)}.`
-      : `<strong>Escala gerada</strong> para ${esc(rotuloMes(h.mes))}.`;
+    let desc;
+    if (h.tipo === 'troca') desc = `<strong>Troca</strong>: ${esc(h.nomeA)} passou de ${curtaDia(h.x)} para ${curtaDia(h.y)}; ${esc(h.nomeB)} passou de ${curtaDia(h.y)} para ${curtaDia(h.x)}.`;
+    else if (h.tipo === 'ausencia') desc = `<strong>${esc(TIPOS_AUS[h.tipoAus] || 'Ausência')}</strong>: ${esc(h.nomeA)} em ${curtaDia(h.x)}.`;
+    else if (h.tipo === 'cobertura') desc = `<strong>Cobertura</strong>: ${esc(h.nomeB)} cobre ${esc(h.nomeA)} em ${curtaDia(h.x)}.`;
+    else desc = `<strong>Escala gerada</strong> para ${esc(rotuloMes(h.mes))}.`;
     return `<tr><td style="white-space:nowrap">${dataHora(h.ts)}</td><td>${desc}</td></tr>`;
   }).join('');
   $('historico').innerHTML = `<table class="lista"><thead><tr><th>Quando</th><th>Registro</th></tr></thead><tbody>${linhas}</tbody></table>`;
@@ -1214,21 +1867,46 @@ function tocarFolga(id, data) {
 
 /* ---------- Interface: Ajustes ---------- */
 function renderAjustes() {
+  $('formPostos').innerHTML = POSTOS.map(p => `<label class="campo">Posto ${p}
+    <input type="text" maxlength="60" data-posto="${p}" value="${esc(estado.postos[p] || '')}" placeholder="Nome · cidade"></label>`).join('');
+  $('formTurnos').innerHTML = Object.keys(TURNOS).map(t => `<label class="campo">${TURNOS[t]}
+    <input type="text" maxlength="30" data-turno="${t}" value="${esc(estado.turnosHorario[t] || '')}" placeholder="ex.: 06h às 14h"></label>`).join('');
   const cab = Object.values(TURNOS).map(t => `<th>${t}</th>`).join('');
-  const linhas = POSTOS.map(p => `<tr><th>Posto ${p}</th>${Object.keys(TURNOS).map(t =>
-    `<td><input type="number" min="0" max="50" step="1" inputmode="numeric" data-min="${chaveGrupo(p, t)}" value="${minDe(p, t)}" aria-label="Mínimo Posto ${p} ${TURNOS[t]}"></td>`).join('')}</tr>`).join('');
+  const linhas = POSTOS.map(p => `<tr><th>${esc(nomePostoCurto(p))}</th>${Object.keys(TURNOS).map(t =>
+    `<td><input type="number" min="0" max="50" step="1" inputmode="numeric" data-min="${chaveGrupo(p, t)}" value="${minDe(p, t)}" aria-label="Mínimo ${esc(nomePostoCurto(p))} ${TURNOS[t]}"></td>`).join('')}</tr>`).join('');
   $('tabelaMinimos').innerHTML = `<thead><tr><th></th>${cab}</tr></thead><tbody>${linhas}</tbody>`;
   $('horasDia').value = estado.horasDia;
+  $('domingoCada').value = String(estado.domingoCadaSemanas || 0);
+  const hs = horasSemana();
+  $('horasInfo').textContent = `Com ${fmtNum(estado.horasDia, 1)} h por dia, a semana de 5 dias soma ${fmtNum(hs, 1)} h. Teto da EC 141: 42 h a partir de ${longa(LIMITE_42)} e 40 h um ano depois.${hs > 42 ? ' ⚠ Acima de 42 h.' : hs > 40 ? ' ⚠ Acima de 40 h: ajustar antes da 2ª etapa.' : ' ✓'}`;
 }
 
 /* ---------- Geral ---------- */
 function renderTudo() {
+  limparCoberturasOrfas();
   const nEx = estado.emps.filter(e => e.exemplo).length;
   $('avisoExemplo').hidden = nEx === 0;
   $('avisoExemploTexto').textContent = `${nEx} ${nEx === 1 ? 'colaborador fictício' : 'colaboradores fictícios'} para demonstração.`;
+  renderTopo();
   renderEscala();
+  renderDimensionamento();
+  renderAusencias();
+  renderAvisos();
   renderColaboradores();
   renderTrocas();
+}
+
+let dlgAlvo = null;
+function abrirDialogoAusencia(id, data) {
+  const e = empPorId(id);
+  if (!e) return;
+  dlgAlvo = { id, data };
+  $('dlgAusTitulo').textContent = `Registrar ausência de ${e.nome}`;
+  $('dlgAusTexto').textContent = `${curtaDia(data)} · ${rotuloGrupo(e.posto, e.turno)}. O dia sai da cobertura e o sistema sugere quem pode cobrir.`;
+  $('dlgAusTipo').value = 'falta';
+  const dlg = $('dlgAus');
+  if (typeof dlg.showModal === 'function') dlg.showModal();
+  else { registrarAusenciaUI(id, data, 'falta'); dlgAlvo = null; }
 }
 
 function ligarEventos() {
@@ -1249,6 +1927,16 @@ function ligarEventos() {
   $('conteudoEscala').addEventListener('click', ev => {
     const folga = ev.target.closest('button.dia.f');
     if (folga) { tocarFolga(folga.dataset.id, folga.dataset.data); return; }
+    const trab = ev.target.closest('button.dia.t');
+    if (trab) { abrirDialogoAusencia(trab.dataset.ausId, trab.dataset.ausData); return; }
+    const aus = ev.target.closest('button.dia.a');
+    if (aus) {
+      const e = empPorId(aus.dataset.rmId);
+      if (e && confirm(`Remover a ausência de ${e.nome} em ${curtaDia(aus.dataset.rmData)}?`)) {
+        removerAusencia(aus.dataset.rmId, aus.dataset.rmData); salvar(); renderTudo(); avisar('Ausência removida.');
+      }
+      return;
+    }
     const acao = ev.target.closest('[data-acao]');
     if (acao && acao.dataset.acao === 'gerar') acaoGerar();
     if (acao && acao.dataset.acao === 'cancelar-marca') { marcacao = null; renderEscala(); }
@@ -1256,6 +1944,84 @@ function ligarEventos() {
     if (ir) trocarAba(ir.dataset.ir);
   });
 
+  $('formDlgAus').addEventListener('submit', ev => {
+    if (ev.submitter && ev.submitter.value === 'ok' && dlgAlvo) {
+      const { id, data } = dlgAlvo;
+      const tipo = $('dlgAusTipo').value;
+      setTimeout(() => registrarAusenciaUI(id, data, tipo), 0);
+    }
+    dlgAlvo = null;
+  });
+
+  // Dimensionamento
+  $('tabelaDim').addEventListener('change', ev => {
+    const k = ev.target.dataset.sim;
+    if (!k) return;
+    const v = Math.min(60, Math.max(0, Math.floor(Number(ev.target.value)) || 0));
+    estado.simulacao[k] = v;
+    salvar();
+    renderDimensionamento();
+  });
+  $('btnDimCadastro').addEventListener('click', () => { estado.simulacao = {}; salvar(); renderDimensionamento(); });
+  $('custoPessoa').addEventListener('change', ev => { estado.custoPessoa = ev.target.value; salvar(); renderDimensionamento(); });
+  $('valorHoraExtra').addEventListener('change', ev => { estado.valorHoraExtra = ev.target.value; salvar(); renderDimensionamento(); });
+
+  // Ausências
+  $('formAus').addEventListener('submit', ev => {
+    ev.preventDefault();
+    registrarAusenciaUI($('ausColab').value, $('ausData').value, $('ausTipo').value);
+  });
+  $('listaAus').addEventListener('click', ev => {
+    const cobrir = ev.target.closest('[data-cobrir]');
+    if (cobrir) {
+      const [idAus, data, idSub] = cobrir.dataset.cobrir.split('|');
+      estado.coberturas[`${data}|${idAus}`] = idSub;
+      estado.historico.unshift({ ts: Date.now(), tipo: 'cobertura', mes: mesDe(data), nomeA: empPorId(idAus).nome, nomeB: empPorId(idSub).nome, x: data });
+      estado.historico = estado.historico.slice(0, 300);
+      msgAberta = { id: idAus, data };
+      salvar(); renderTudo();
+      avisar(`${empPorId(idSub).nome} cobre ${curtaDia(data)}. Mensagem de WhatsApp pronta abaixo.`);
+      return;
+    }
+    const desf = ev.target.closest('[data-desfazer]');
+    if (desf) {
+      const [idAus, data] = desf.dataset.desfazer.split('|');
+      delete estado.coberturas[`${data}|${idAus}`];
+      msgAberta = null;
+      salvar(); renderTudo(); avisar('Cobertura desfeita.');
+      return;
+    }
+    const rm = ev.target.closest('[data-rm-aus]');
+    if (rm) {
+      const [id, data] = rm.dataset.rmAus.split('|');
+      if (!confirm(`Remover a ausência de ${empPorId(id).nome} em ${curtaDia(data)}?`)) return;
+      removerAusencia(id, data);
+      salvar(); renderTudo(); avisar('Ausência removida.');
+      return;
+    }
+    const msg = ev.target.closest('[data-msg-cob]');
+    if (msg) {
+      const [id, data] = msg.dataset.msgCob.split('|');
+      msgAberta = msgAberta && msgAberta.id === id && msgAberta.data === data ? null : { id, data };
+      renderAusencias();
+      return;
+    }
+    const cp = ev.target.closest('[data-copiar-texto]');
+    if (cp) copiar(cp.dataset.copiarTexto);
+  });
+
+  // Avisos
+  $('avisoSemana').addEventListener('change', renderAvisos);
+  $('avisoPosto').addEventListener('change', renderAvisos);
+  $('avisoDia').addEventListener('change', renderAvisos);
+  $('aba-avisos').addEventListener('click', ev => {
+    const cp = ev.target.closest('[data-copiar-texto]');
+    if (cp) { ev.preventDefault(); copiar(cp.dataset.copiarTexto); return; }
+    const cpId = ev.target.closest('[data-copiar]');
+    if (cpId) copiar($(cpId.dataset.copiar).textContent);
+  });
+
+  // Colaboradores
   $('formColab').addEventListener('submit', salvarColab);
   $('btnCancelarColab').addEventListener('click', limparFormColab);
   $('tabelaColab').addEventListener('click', ev => {
@@ -1266,6 +2032,7 @@ function ligarEventos() {
   });
   $('btnRemoverExemplos').addEventListener('click', removerExemplos);
 
+  // Trocas
   [['trocaA', 'a'], ['trocaX', 'x'], ['trocaB', 'b'], ['trocaY', 'y']].forEach(([id, campo]) => {
     $(id).addEventListener('change', ev => {
       troca[campo] = ev.target.value;
@@ -1280,6 +2047,19 @@ function ligarEventos() {
     renderTrocas();
   });
 
+  // Ajustes
+  $('formPostos').addEventListener('change', ev => {
+    const p = ev.target.dataset.posto;
+    if (!p) return;
+    estado.postos[p] = ev.target.value.trim() || `Posto ${p}`;
+    salvar(); renderAjustes(); renderTudo();
+  });
+  $('formTurnos').addEventListener('change', ev => {
+    const t = ev.target.dataset.turno;
+    if (!t) return;
+    estado.turnosHorario[t] = ev.target.value.trim();
+    salvar(); renderTudo();
+  });
   $('tabelaMinimos').addEventListener('change', ev => {
     const k = ev.target.dataset.min;
     if (!k) return;
@@ -1287,21 +2067,27 @@ function ligarEventos() {
     ev.target.value = v;
     estado.min[k] = v;
     salvar();
-    renderEscala();
-    renderTrocas();
+    renderTudo();
   });
   $('horasDia').addEventListener('change', ev => {
     const v = Number(ev.target.value);
     if (!(v >= 1 && v <= 12)) { ev.target.value = estado.horasDia; avisar('Informe entre 1 e 12 horas.'); return; }
     estado.horasDia = v;
     salvar();
-    renderEscala();
+    renderAjustes();
+    renderTudo();
+  });
+  $('domingoCada').addEventListener('change', ev => {
+    estado.domingoCadaSemanas = Number(ev.target.value) || 0;
+    salvar();
+    renderTudo();
+    avisar('Regra do domingo atualizada. Gere a escala novamente para aplicar na geração.');
   });
   $('btnRestaurar').addEventListener('click', () => {
-    if (!confirm('Apagar colaboradores, escalas e histórico e voltar aos dados de exemplo?')) return;
+    if (!confirm('Apagar colaboradores, escalas, ausências e histórico e voltar aos dados de exemplo?')) return;
     try { localStorage.removeItem(CHAVE); } catch (e) { /* segue com o estado em memória */ }
     troca.a = troca.b = troca.x = troca.y = '';
-    marcacao = null;
+    marcacao = null; msgAberta = null;
     carregar();
     limparFormColab();
     renderAjustes();
@@ -1313,10 +2099,9 @@ function ligarEventos() {
 function navegarMes(delta) {
   estado.mes = mudaMes(estado.mes, delta);
   troca.a = troca.b = troca.x = troca.y = '';
-  marcacao = null;
+  marcacao = null; msgAberta = null;
   salvar();
-  renderEscala();
-  renderTrocas();
+  renderTudo();
 }
 
 carregar();
